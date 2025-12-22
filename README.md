@@ -20,7 +20,7 @@ This project implements a Grafana Datasource plugin that loads and queries Parqu
 
 ### 1. Build the Plugin Frontend
 ```bash
-cd myorg-parquets3-datasource
+cd tobiasworkstech-parquets3-datasource
 npm install
 npm run build
 ```
