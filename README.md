@@ -4,7 +4,7 @@ This project implements a Grafana Datasource plugin that loads and queries Parqu
 
 ## Project Structure
 
-- `myorg-parquets3-datasource/`: The Grafana plugin source code (React frontend & Go backend).
+- `tobiasworkstech-parquets3-datasource`: The Grafana plugin source code (React frontend & Go backend).
 - `docker-compose.yml`: Orchestration for Grafana and Minio.
 - `Dockerfile.grafana`: Custom Grafana image with the plugin embedded.
 - `generate_parquet.go`: Script to generate sample `.parquet` data for testing.
