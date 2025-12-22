@@ -1,5 +1,7 @@
 # Parquet-S3-Datasource for Grafana
 
+**by tobiasworkstech**
+
 Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage directly in Grafana.
 
 ## Overview
