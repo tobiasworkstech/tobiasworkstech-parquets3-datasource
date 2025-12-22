@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Parquet-S3-Datasource",
+  "id": "tobiasworkstech-parquets3-datasource",
+  "metrics": true,
+  "backend": true,
+  "executable": "gpx_parquet_s3_datasource",
+  "info": {
+    "description": "Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage (MinIO, Wasabi, DigitalOcean Spaces). Leverage the columnar Parquet format for efficient data lake analytics directly in Grafana.",
+    "author": {
+      "name": "Tobiasworkstech",
+      "url": "https://github.com/tobiasworkstech"
+    },
+    "keywords": [
+      "datasource",
+      "parquet",
+      "s3",
+      "amazon s3",
+      "minio",
+      "data lake",
+      "apache arrow",
+      "columnar storage",
+      "analytics"
+    ],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "GitHub",
+        "url": "https://github.com/tobiasworkstech"
+      }
+    ],
+    "screenshots": [],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=11.6.0",
+    "plugins": []
+  }
+}

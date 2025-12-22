@@ -1,0 +1,17 @@
+apiVersion: 1
+
+datasources:
+  - name: 'parquet-s3-datasource'
+    type: 'tobiasworkstech-parquets3-datasource'
+    access: proxy
+    isDefault: true
+    orgId: 1
+    version: 1
+    editable: true
+    jsonData:
+      region: 'us-east-1'
+      bucket: 'parquet-data'
+      endpoint: 'http://minio:9000'
+    secureJsonData:
+      accessKey: 'minioadmin'
+      secretKey: 'minioadmin'
