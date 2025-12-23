@@ -12,8 +12,8 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
-	"github.com/tobiasworkstech/parquets3-datasource/pkg/models"
-	"github.com/tobiasworkstech/parquets3-datasource/pkg/parquet"
+	"github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/pkg/models"
+	"github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/pkg/parquet"
 )
 
 // Make sure Datasource implements required interfaces. This is important to do

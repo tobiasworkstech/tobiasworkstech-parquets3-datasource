@@ -1,7 +1,7 @@
 services:
   grafana:
     user: root
-    container_name: 'myorg-parquets3-datasource'
+    container_name: 'tobiasworkstech-parquets3-datasource'
 
     build:
       context: .
@@ -19,13 +19,13 @@ services:
     cap_add:
       - SYS_PTRACE
     volumes:
-      - ../dist:/var/lib/grafana/plugins/myorg-parquets3-datasource
+      - ../dist:/var/lib/grafana/plugins/tobiasworkstech-parquets3-datasource
       - ../provisioning:/etc/grafana/provisioning
-      - ..:/root/myorg-parquets3-datasource
+      - ..:/root/tobiasworkstech-parquets3-datasource
 
     environment:
       NODE_ENV: development
-      GF_LOG_FILTERS: plugin.myorg-parquets3-datasource:debug
+      GF_LOG_FILTERS: plugin.tobiasworkstech-parquets3-datasource:debug
       GF_LOG_LEVEL: debug
       GF_DATAPROXY_LOGGING: 1
-      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: myorg-parquets3-datasource
+      GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS: tobiasworkstech-parquets3-datasource

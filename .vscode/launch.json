@@ -23,7 +23,7 @@
       "substitutePath": [
         {
           "from": "${workspaceFolder}",
-          "to": "/root/myorg-parquets3-datasource"
+          "to": "/root/tobiasworkstech-parquets3-datasource"
         }
       ]
     }
