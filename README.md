@@ -1,83 +1,175 @@
-# Grafana Parquet S3 Plugin
+# Parquet-S3-Datasource for Grafana
 
-This project implements a Grafana Datasource plugin that loads and queries Parquet files stored in Amazon S3 or S3-compatible storage like Minio.
+**by tobiasworkstech**
 
-## Project Structure
+Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage directly in Grafana.
 
-- `tobiasworkstech-parquets3-datasource`: The Grafana plugin source code (React frontend & Go backend).
-- `docker-compose.yml`: Orchestration for Grafana and Minio.
-- `Dockerfile.grafana`: Custom Grafana image with the plugin embedded.
-- `generate_parquet.go`: Script to generate sample `.parquet` data for testing.
-- `upload_to_minio.go`: Script to upload files to the local Minio instance.
+## Overview
 
-## Prerequisites
+The Parquet-S3-Datasource plugin enables you to connect Grafana to your data lake stored in Parquet format on Amazon S3, MinIO, Wasabi, DigitalOcean Spaces, or any S3-compatible storage. Leverage the efficiency of columnar Parquet files for fast analytics and visualization without needing to load data into a traditional database.
 
-- [Docker](https://www.docker.com/) and Docker Compose.
-- [Go](https://golang.org/) (for building the backend).
-- [Node.js & npm](https://nodejs.org/) (for building the frontend).
+## Demo
 
-## Installation & Build
+Watch the plugin in action - from datasource configuration to querying Parquet files:
 
-### 1. Build the Plugin Frontend
+![Plugin Demo](img/demo-full.webp)
+
+### Quick Start Example
+
+![Querying Parquet Data](img/screenshot-query-data.png)
+
+## Features
+
+- **Direct Parquet File Access**: Query Parquet files directly from S3 without intermediate databases
+- **S3-Compatible Storage Support**: Works with Amazon S3, MinIO, Wasabi, DigitalOcean Spaces, and more
+- **Apache Arrow Integration**: Efficient data processing using Apache Arrow for fast query execution
+- **Configurable Endpoints**: Support for custom S3 endpoints for private cloud deployments
+- **Path-Style Routing**: Automatic configuration for S3-compatible storage that requires path-style URLs
+
+## Requirements
+
+- Grafana >= 11.6.0
+- S3 or S3-compatible storage with read access
+- Parquet files in your S3 bucket
+
+## Getting Started
+
+### Installation
+
+Install the plugin using the Grafana CLI:
+
 ```bash
+grafana-cli plugins install tobiasworkstech-parquets3-datasource
+```
+
+Or via Docker:
+
+```bash
+docker run -d -p 3000:3000 \
+  -e "GF_INSTALL_PLUGINS=tobiasworkstech-parquets3-datasource" \
+  grafana/grafana
+```
+
+### Configuration
+
+1. Navigate to **Configuration** > **Data Sources** in your Grafana instance
+2. Click **Add data source**
+3. Search for and select **Parquet-S3-Datasource**
+4. Configure the following settings:
+   - **Region**: Your S3 region (e.g., `us-east-1`)
+   - **Bucket**: The name of your S3 bucket containing Parquet files
+   - **Endpoint** (optional): Custom S3 endpoint URL (e.g., `http://minio:9000` for MinIO)
+   - **Access Key**: Your S3 access key ID
+   - **Secret Key**: Your S3 secret access key
+5. Click **Save & test** to verify the connection
+
+### Usage
+
+1. Create a new dashboard or open an existing one
+2. Add a new panel
+3. Select your Parquet-S3-Datasource as the data source
+4. In the **Parquet File Path** field, enter the path to your Parquet file (e.g., `data/metrics.parquet`)
+5. Click **Run query** to visualize your data
+
+## Configuration Examples
+
+### Amazon S3
+
+```
+Region: us-east-1
+Bucket: my-data-lake
+Endpoint: (leave empty)
+Access Key: AKIA...
+Secret Key: ***
+```
+
+### MinIO (Local Development)
+
+```
+Region: us-east-1
+Bucket: parquet-data
+Endpoint: http://minio:9000
+Access Key: minioadmin
+Secret Key: minioadmin
+```
+
+### Wasabi
+
+```
+Region: us-east-1
+Bucket: my-bucket
+Endpoint: https://s3.wasabisys.com
+Access Key: YOUR_WASABI_KEY
+Secret Key: ***
+```
+
+## Supported Parquet Features
+
+- All primitive data types (INT32, INT64, FLOAT, DOUBLE, BOOLEAN, BINARY, STRING)
+- Nested structures (STRUCT, LIST, MAP)
+- Compression codecs (SNAPPY, GZIP, LZ4, ZSTD)
+- Column pruning for efficient data retrieval
+
+## Troubleshooting
+
+### Connection Failed
+
+- Verify your S3 credentials are correct
+- Ensure the bucket exists and is accessible
+- Check network connectivity to your S3 endpoint
+- For custom endpoints, verify the endpoint URL format
+
+### No Data Returned
+
+- Confirm the Parquet file path is correct
+- Ensure the file exists in the specified bucket
+- Check that your access key has read permissions
+
+### Invalid Plugin Signature (Development)
+
+For development environments, add this to your Grafana configuration:
+
+```ini
+[plugins]
+allow_loading_unsigned_plugins = tobiasworkstech-parquets3-datasource
+```
+
+## Development
+
+### Prerequisites
+
+- Go >= 1.21
+- Node.js >= 22
+- Docker and Docker Compose
+
+### Building the Plugin
+
+```bash
+# Build frontend
 cd tobiasworkstech-parquets3-datasource
 npm install
 npm run build
-```
 
-### 2. Build the Plugin Backend
-You need to build the backend for the target architecture of the Docker container (Linux).
-```bash
-# For ARM64 (Apple Silicon / Raspberry Pi)
+# Build backend for Linux (for Docker)
 GOOS=linux GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_linux_arm64 ./pkg
-
-# For AMD64 (Standard Intel/AMD)
-GOOS=linux GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_linux_amd64 ./pkg
 ```
 
-## Running the Environment
+### Running Locally
 
-### 1. Start Grafana and Minio
 ```bash
 docker compose up -d
 ```
-- **Grafana**: [http://localhost:3001](http://localhost:3001)
-- **Minio Console**: [http://localhost:9001](http://localhost:9001) (User/Pass: `minioadmin` / `minioadmin`)
 
-### 2. Prepare Test Data
-```bash
-# Generate sample Parquet file
-go run generate_parquet.go
+Access Grafana at `http://localhost:3001`.
 
-# Upload to Minio bucket 'parquet-data'
-go run upload_to_minio.go
-```
+## License
 
-## Configuring Grafana
+Apache 2.0 License - see [LICENSE](LICENSE) for details.
 
-1. Log in to Grafana at [http://localhost:3001](http://localhost:3001).
-2. Go to **Connections > Data Sources > Add data source**.
-3. Search for **Parquet-S3-Datasource**.
-4. Enter the following settings:
-   - **Region**: `us-east-1`
-   - **Bucket**: `parquet-data`
-   - **Endpoint**: `http://minio:9000`
-   - **Access Key**: `minioadmin`
-   - **Secret Key**: `minioadmin`
-5. Click **Save & test**.
+## Contributing
 
-## Querying Data
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource).
 
-1. Create a new **Dashboard** or go to **Explore**.
-2. Select your **Parquet-S3-Datasource**.
-3. In the **Parquet File Path** field, enter: `test.parquet`.
-4. Run the query to see the data loaded from S3!
+## Support
 
-## Backend Implementation Details
-
-The plugin uses:
-- `github.com/aws/aws-sdk-go-v2`: For S3 interactions.
-- `github.com/apache/arrow-go/v18/parquet/pqarrow`: To read Parquet files efficiently into Arrow Tables, which are then converted to Grafana Data Frames.
-- Custom `S3ReaderAt` with `Seek` support to handle Parquet's random-access requirements over HTTP range requests.
-
-
+For issues, questions, or feature requests, please visit the [GitHub repository](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/issues).
