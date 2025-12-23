@@ -1,6 +1,6 @@
 module github.com/tobiasworkstech/parquets3-datasource
 
-go 1.23
+go 1.24.6
 
 require (
 	github.com/apache/arrow-go/v18 v18.4.1
