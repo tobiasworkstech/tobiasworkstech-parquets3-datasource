@@ -44,7 +44,15 @@ ci/
 .idea
 
 .eslintcache
+<<<<<<< HEAD:.gitignore
 
 .DS_Store
 
+<<<<<<< HEAD
 
+=======
+# Development files (not part of plugin)
+.development/
+=======
+>>>>>>> parent of be969c9 (remove .ds_store):tobiasworkstech-parquets3-datasource/.gitignore
+>>>>>>> 0bc82e5 (inigre)
