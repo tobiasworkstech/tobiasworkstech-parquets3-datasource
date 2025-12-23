@@ -33,7 +33,12 @@
         "url": "https://github.com/tobiasworkstech"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "Query Data",
+        "path": "img/screenshot-query-data.png"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
