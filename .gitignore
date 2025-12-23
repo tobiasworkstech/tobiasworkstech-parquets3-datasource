@@ -47,5 +47,4 @@ ci/
 
 .DS_Store
 
-# Development files (not part of plugin)
-.development/
+

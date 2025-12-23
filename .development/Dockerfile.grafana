@@ -1,0 +1,10 @@
+FROM grafana/grafana-enterprise:latest
+
+# Copy the built plugin and provisioning
+COPY ./tobiasworkstech-parquets3-datasource/dist /var/lib/grafana/plugins/tobiasworkstech-parquets3-datasource
+COPY ./tobiasworkstech-parquets3-datasource/provisioning /etc/grafana/provisioning
+
+# Set environment variables
+ENV GF_PLUGINS_ALLOW_LOADING_UNSIGNED_PLUGINS=tobiasworkstech-parquets3-datasource
+ENV GF_AUTH_ANONYMOUS_ENABLED=true
+ENV GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
