@@ -5,23 +5,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
 type PluginSettings struct {
-	Region   string                `json:"region"`
-	Bucket   string                `json:"bucket"`
-	Endpoint string                `json:"endpoint"`
-	UseSSL   bool                  `json:"useSSL"`
-	Secrets  *SecretPluginSettings `json:"-"`
+	awsds.AWSDatasourceSettings
+	Bucket string `json:"bucket"`
 }
 
-type SecretPluginSettings struct {
-	AccessKey string `json:"accessKey"`
-	SecretKey string `json:"secretKey"`
-}
-
-func LoadPluginSettings(source backend.DataSourceInstanceSettings) (*PluginSettings, error) {
+func LoadPluginSettings(ctx backend.PluginContext, source backend.DataSourceInstanceSettings) (*PluginSettings, error) {
 	settings := PluginSettings{}
 	backend.Logger.Info("Loading plugin settings", "json", string(source.JSONData))
 	err := json.Unmarshal(source.JSONData, &settings)
@@ -29,19 +22,13 @@ func LoadPluginSettings(source backend.DataSourceInstanceSettings) (*PluginSetti
 		return nil, fmt.Errorf("could not unmarshal PluginSettings json: %w", err)
 	}
 
-	cutset := " \t\n\r`\""
-	settings.Region = strings.Trim(settings.Region, cutset)
-	settings.Bucket = strings.Trim(settings.Bucket, cutset)
-	settings.Endpoint = strings.Trim(settings.Endpoint, cutset)
+	// Load AWS settings from the datasource
+	if err := settings.Load(source); err != nil {
+		return nil, fmt.Errorf("could not load AWS settings: %w", err)
+	}
 
-	settings.Secrets = loadSecretPluginSettings(source.DecryptedSecureJSONData)
+	cutset := " \t\n\r`\""
+	settings.Bucket = strings.Trim(settings.Bucket, cutset)
 
 	return &settings, nil
-}
-
-func loadSecretPluginSettings(source map[string]string) *SecretPluginSettings {
-	return &SecretPluginSettings{
-		AccessKey: source["accessKey"],
-		SecretKey: source["secretKey"],
-	}
 }

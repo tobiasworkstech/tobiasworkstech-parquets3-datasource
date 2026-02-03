@@ -7,7 +7,7 @@
   "backend": true,
   "executable": "gpx_parquet_s3_datasource",
   "info": {
-    "description": "Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage (MinIO, Wasabi, DigitalOcean Spaces). Leverage the columnar Parquet format for efficient data lake analytics directly in Grafana.",
+    "description": "Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage (MinIO, Wasabi, DigitalOcean Spaces). Leverage the columnar Parquet format for efficient data lake analytics directly in Grafana with SQL support via DuckDB.",
     "author": {
       "name": "Tobiasworkstech",
       "url": "https://github.com/tobiasworkstech"
@@ -21,7 +21,9 @@
       "data lake",
       "apache arrow",
       "columnar storage",
-      "analytics"
+      "analytics",
+      "duckdb",
+      "sql"
     ],
     "logos": {
       "small": "img/logo.svg",
@@ -30,15 +32,28 @@
     "links": [
       {
         "name": "GitHub",
-        "url": "https://github.com/tobiasworkstech"
+        "url": "https://github.com/tobiasworkstech/parquets3-datasource"
+      },
+      {
+        "name": "Documentation",
+        "url": "https://github.com/tobiasworkstech/parquets3-datasource#readme"
       }
     ],
-    "screenshots": [],
+    "screenshots": [
+      {
+        "name": "Query Editor",
+        "path": "img/screenshot-query-data.png"
+      },
+      {
+        "name": "Demo Dashboard",
+        "path": "img/demo-full.webp"
+      }
+    ],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
   "dependencies": {
-    "grafanaDependency": ">=11.6.0",
+    "grafanaDependency": ">=11.0.0",
     "plugins": []
   }
 }

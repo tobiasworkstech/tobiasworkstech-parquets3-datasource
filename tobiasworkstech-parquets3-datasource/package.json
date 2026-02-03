@@ -1,6 +1,6 @@
 {
   "name": "tobiasworkstech-parquets3-datasource",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "build": "webpack -c ./.config/webpack/webpack.config.ts --env production",
     "dev": "webpack -w -c ./.config/webpack/webpack.config.ts --env development",
@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@emotion/css": "11.10.6",
+    "@grafana/aws-sdk": "^0.4.0",
     "@grafana/data": "^12.3.0",
     "@grafana/i18n": "^12.3.0",
     "@grafana/runtime": "^12.3.0",

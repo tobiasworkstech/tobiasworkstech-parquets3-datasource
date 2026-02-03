@@ -1,0 +1,584 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Titanic Dataset - Famous survival dataset from the Titanic disaster",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT * FROM parquet LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Titanic Passengers (First 20 Rows)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^total$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT COUNT(*) AS total FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Passengers",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^survivors$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT SUM(Survived) AS survivors FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Survivors",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "/^avg_fare$/",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT AVG(Fare) AS avg_fare FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Fare",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 6,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT Pclass, COUNT(*) AS count FROM parquet GROUP BY Pclass ORDER BY Pclass",
+          "refId": "A"
+        }
+      ],
+      "title": "Passengers by Class",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 7,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT Sex, COUNT(*) AS count FROM parquet GROUP BY Sex",
+          "refId": "A"
+        }
+      ],
+      "title": "Passengers by Gender",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 21
+      },
+      "id": 9,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT Pclass, SUM(Survived) AS survivors, COUNT(*) AS total FROM parquet GROUP BY Pclass ORDER BY Pclass",
+          "refId": "A"
+        }
+      ],
+      "title": "Survival by Class",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 21
+      },
+      "id": 10,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "titanic.parquet",
+          "sqlQuery": "SELECT Embarked, COUNT(*) AS passengers, AVG(Fare) AS avg_fare FROM parquet GROUP BY Embarked",
+          "refId": "A"
+        }
+      ],
+      "title": "Embarkation Ports (C=Cherbourg, Q=Queenstown, S=Southampton)",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["parquet", "s3", "titanic", "survival", "dataset"],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Titanic Survival Dataset",
+  "uid": "titanic-dataset",
+  "version": 1,
+  "weekStart": ""
+}

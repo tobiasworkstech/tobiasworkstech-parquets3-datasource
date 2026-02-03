@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-02-02
+
+### Features
+
+- **SQL Query Support**: Full SQL query capabilities powered by DuckDB
+  - SELECT, WHERE, GROUP BY, ORDER BY, LIMIT clauses
+  - Aggregation functions (COUNT, SUM, AVG, MIN, MAX)
+  - Complex filtering and sorting
+- **Visual Query Builder**: PostgreSQL-style query builder interface
+  - Column selection with aggregations
+  - Filter toggle with condition builder
+  - Group By toggle with multi-column selection
+  - Order By toggle with ASC/DESC
+  - SQL Preview panel showing generated query
+- **Template Variables**: Support for dashboard template variables
+  - List files in bucket (with regex filtering)
+  - List prefixes/folders
+  - SQL-based variable queries
+- **Explore View**: Enhanced query editor for Grafana Explore
+  - File selector with regex filtering
+  - Refresh button to reload file list
+  - Builder and Code modes
+- **Sample Dashboards**: Pre-built dashboards demonstrating plugin capabilities
+  - Iris Dataset dashboard
+  - Titanic Survival Dataset dashboard
+  - Time Series Metrics dashboard
+
+### Improvements
+
+- Reduced Grafana version requirement to 11.0.0+
+- Better error handling and logging
+- Improved path-style routing for S3-compatible storage
+- ARM64 binary support for Apple Silicon
+
 ## [1.0.0] - 2025-12-22
 
 ### Features

@@ -9,6 +9,8 @@ datasources:
     version: 1
     editable: true
     jsonData:
+      authType: 'keys'
+      defaultRegion: 'us-east-1'
       region: 'us-east-1'
       bucket: 'parquet-data'
       endpoint: 'http://minio:9000'

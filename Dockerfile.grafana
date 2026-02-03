@@ -1,4 +1,4 @@
-FROM grafana/grafana-enterprise:latest
+FROM grafana/grafana-enterprise:latest-ubuntu
 
 # Copy the built plugin and provisioning
 COPY ./tobiasworkstech-parquets3-datasource/dist /var/lib/grafana/plugins/tobiasworkstech-parquets3-datasource

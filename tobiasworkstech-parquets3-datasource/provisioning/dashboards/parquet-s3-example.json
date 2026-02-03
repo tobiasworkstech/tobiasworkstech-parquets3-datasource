@@ -1,0 +1,470 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Example dashboard demonstrating Parquet S3 Datasource with SQL queries",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "iris.parquet",
+          "sqlQuery": "SELECT * FROM parquet LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "All Data (SELECT * FROM parquet LIMIT 20)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "iris.parquet",
+          "sqlQuery": "SELECT * FROM parquet WHERE \"sepal.length\" > 6",
+          "refId": "A"
+        }
+      ],
+      "title": "Filtered (WHERE sepal.length > 6)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      },
+      "id": 3,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "iris.parquet",
+          "sqlQuery": "SELECT variety, \"sepal.length\", \"petal.length\" FROM parquet ORDER BY \"sepal.length\" DESC LIMIT 10",
+          "refId": "A"
+        }
+      ],
+      "title": "Sorted (ORDER BY sepal.length DESC)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "iris.parquet",
+          "sqlQuery": "SELECT COUNT(*) as total_rows, AVG(\"sepal.length\") as avg_sepal_length, AVG(\"petal.length\") as avg_petal_length FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Aggregations (COUNT, AVG)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "iris.parquet",
+          "sqlQuery": "SELECT variety, AVG(\"sepal.length\") as avg_sepal_length, AVG(\"petal.length\") as avg_petal_length FROM parquet GROUP BY variety",
+          "refId": "A"
+        }
+      ],
+      "title": "Bar Chart - Average Measurements by Variety",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "P10510B1EF8166CFC"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "P10510B1EF8166CFC"
+          },
+          "path": "$parquet_file",
+          "sqlQuery": "SELECT * FROM parquet LIMIT 20",
+          "refId": "A"
+        }
+      ],
+      "title": "Dynamic File Selection (using $parquet_file variable)",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["parquet", "s3", "example", "sql", "duckdb"],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "iris.parquet",
+          "value": "iris.parquet"
+        },
+        "datasource": {
+          "type": "tobiasworkstech-parquets3-datasource",
+          "uid": "P10510B1EF8166CFC"
+        },
+        "definition": "files(, *.parquet)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Parquet File",
+        "multi": false,
+        "name": "parquet_file",
+        "options": [],
+        "query": {
+          "queryType": "variable",
+          "variableQueryType": "files",
+          "prefix": "",
+          "filePattern": "*.parquet"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Parquet S3 Example Dashboard",
+  "uid": "parquet-s3-example",
+  "version": 1,
+  "weekStart": ""
+}
