@@ -1,83 +1,157 @@
 # Grafana Parquet S3 Plugin
 
-This project implements a Grafana Datasource plugin that loads and queries Parquet files stored in Amazon S3 or S3-compatible storage like Minio.
+A Grafana datasource plugin for querying Apache Parquet files from Amazon S3 or S3-compatible storage (MinIO, Wasabi, DigitalOcean Spaces) with full SQL support powered by DuckDB.
+
+## Features
+
+- **SQL Queries**: Full SQL support with SELECT, WHERE, GROUP BY, ORDER BY, LIMIT
+- **Visual Query Builder**: PostgreSQL-style interface with point-and-click query building
+- **Template Variables**: Dynamic dashboards with file listing and SQL-based variables
+- **Multiple Storage Providers**: Amazon S3, MinIO, Wasabi, DigitalOcean Spaces
+- **Sample Dashboards**: Pre-built dashboards for Iris, Titanic, and Time Series data
 
 ## Project Structure
 
-- `tobiasworkstech-parquets3-datasource`: The Grafana plugin source code (React frontend & Go backend).
-- `docker-compose.yml`: Orchestration for Grafana and Minio.
-- `Dockerfile.grafana`: Custom Grafana image with the plugin embedded.
-- `generate_parquet.go`: Script to generate sample `.parquet` data for testing.
-- `upload_to_minio.go`: Script to upload files to the local Minio instance.
+```
+├── tobiasworkstech-parquets3-datasource/   # Plugin source code
+│   ├── src/                                 # React frontend (TypeScript)
+│   ├── pkg/                                 # Go backend
+│   │   ├── plugin/                          # Datasource implementation
+│   │   ├── duckdb/                          # SQL query executor
+│   │   ├── parquet/                         # Parquet file reader
+│   │   └── models/                          # Data models
+│   └── provisioning/                        # Grafana provisioning configs
+│       ├── datasources/                     # Auto-configured datasource
+│       └── dashboards/                      # Sample dashboards
+├── samples/                                 # Sample parquet files
+├── cmd/                                     # CLI tools
+│   ├── generate_parquet/                    # Generate test data
+│   └── upload_to_minio/                     # Upload to MinIO
+├── docker-compose.yml                       # Development environment
+└── Dockerfile.grafana                       # Custom Grafana image
+```
 
-## Prerequisites
+## Quick Start
 
-- [Docker](https://www.docker.com/) and Docker Compose.
-- [Go](https://golang.org/) (for building the backend).
-- [Node.js & npm](https://nodejs.org/) (for building the frontend).
+### 1. Start Development Environment
 
-## Installation & Build
+```bash
+docker compose up -d
+```
 
-### 1. Build the Plugin Frontend
+- **Grafana**: http://localhost:3001
+- **MinIO Console**: http://localhost:9001 (minioadmin/minioadmin)
+
+### 2. Explore Sample Dashboards
+
+The plugin comes with pre-configured dashboards:
+- Iris Flower Dataset
+- Titanic Survival Dataset
+- Time Series Metrics
+
+### 3. Create Your Own Queries
+
+1. Go to **Explore** in Grafana
+2. Select **parquet-s3-datasource**
+3. Choose a parquet file from the dropdown
+4. Use the visual builder or write SQL directly
+
+## Building the Plugin
+
+### Frontend
+
 ```bash
 cd tobiasworkstech-parquets3-datasource
 npm install
 npm run build
 ```
 
-### 2. Build the Plugin Backend
-You need to build the backend for the target architecture of the Docker container (Linux).
+### Backend
+
 ```bash
-# For ARM64 (Apple Silicon / Raspberry Pi)
+cd tobiasworkstech-parquets3-datasource
+
+# Linux AMD64
+GOOS=linux GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_linux_amd64 ./pkg
+
+# Linux ARM64 (Apple Silicon Docker)
 GOOS=linux GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_linux_arm64 ./pkg
 
-# For AMD64 (Standard Intel/AMD)
-GOOS=linux GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_linux_amd64 ./pkg
+# macOS ARM64
+GOOS=darwin GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_darwin_arm64 ./pkg
+
+# Windows
+GOOS=windows GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_windows_amd64.exe ./pkg
 ```
 
-## Running the Environment
+## SQL Query Examples
 
-### 1. Start Grafana and Minio
-```bash
-docker compose up -d
+```sql
+-- Basic query
+SELECT * FROM parquet LIMIT 100
+
+-- Filtering
+SELECT name, value FROM parquet
+WHERE value > 50
+ORDER BY value DESC
+
+-- Aggregations
+SELECT category, COUNT(*) as count, AVG(price) as avg_price
+FROM parquet
+GROUP BY category
+ORDER BY count DESC
+
+-- Column with special characters
+SELECT "sepal.length", "petal.width" FROM parquet
 ```
-- **Grafana**: [http://localhost:3001](http://localhost:3001)
-- **Minio Console**: [http://localhost:9001](http://localhost:9001) (User/Pass: `minioadmin` / `minioadmin`)
 
-### 2. Prepare Test Data
-```bash
-# Generate sample Parquet file
-go run generate_parquet.go
+## Template Variables
 
-# Upload to Minio bucket 'parquet-data'
-go run upload_to_minio.go
+### List Files
+Query Type: `List Files`
+- Lists all parquet files in the bucket
+- Supports prefix filtering and regex patterns
+
+### SQL Query
+Query Type: `SQL Query`
+- Path: `data.parquet`
+- SQL: `SELECT DISTINCT category FROM parquet`
+
+## Configuration
+
+### MinIO (Development)
+```
+Region: us-east-1
+Bucket: parquet-data
+Endpoint: http://minio:9000
+Access Key: minioadmin
+Secret Key: minioadmin
 ```
 
-## Configuring Grafana
+### Amazon S3
+```
+Region: us-east-1
+Bucket: my-data-lake
+Endpoint: (leave empty)
+Access Key: AKIA...
+Secret Key: ***
+```
 
-1. Log in to Grafana at [http://localhost:3001](http://localhost:3001).
-2. Go to **Connections > Data Sources > Add data source**.
-3. Search for **Parquet-S3-Datasource**.
-4. Enter the following settings:
-   - **Region**: `us-east-1`
-   - **Bucket**: `parquet-data`
-   - **Endpoint**: `http://minio:9000`
-   - **Access Key**: `minioadmin`
-   - **Secret Key**: `minioadmin`
-5. Click **Save & test**.
+## Technical Details
 
-## Querying Data
+- **Frontend**: React + TypeScript with Grafana UI components
+- **Backend**: Go with AWS SDK v2 and Apache Arrow
+- **SQL Engine**: DuckDB for query execution
+- **Data Format**: Apache Parquet with Arrow integration
 
-1. Create a new **Dashboard** or go to **Explore**.
-2. Select your **Parquet-S3-Datasource**.
-3. In the **Parquet File Path** field, enter: `test.parquet`.
-4. Run the query to see the data loaded from S3!
+## Release
 
-## Backend Implementation Details
+**Latest Version**: v1.1.0
 
-The plugin uses:
-- `github.com/aws/aws-sdk-go-v2`: For S3 interactions.
-- `github.com/apache/arrow-go/v18/parquet/pqarrow`: To read Parquet files efficiently into Arrow Tables, which are then converted to Grafana Data Frames.
-- Custom `S3ReaderAt` with `Seek` support to handle Parquet's random-access requirements over HTTP range requests.
+Download: [tobiasworkstech-parquets3-datasource-1.1.0.zip](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/releases/download/v1.1.0/tobiasworkstech-parquets3-datasource-1.1.0.zip)
 
+MD5: `2fb5a4acb1961984002225b19d7a1ac2`
 
+## License
+
+Apache 2.0 - See [LICENSE](LICENSE) for details.
