@@ -62,8 +62,7 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
 
       const values = frame.data.values[0] as string[];
       return values.map((value: string) => ({ text: value, value }));
-    } catch (error) {
-      console.error('Variable query failed:', error);
+    } catch {
       return [];
     }
   }
@@ -110,8 +109,7 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
         filePattern: pattern,
       });
       return results.map(r => r.value as string);
-    } catch (error) {
-      console.error('Failed to list files:', error);
+    } catch {
       return [];
     }
   }
@@ -142,8 +140,7 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
         name: field.name,
         type: field.type || 'unknown',
       }));
-    } catch (error) {
-      console.error('Failed to get schema:', error);
+    } catch {
       return [];
     }
   }

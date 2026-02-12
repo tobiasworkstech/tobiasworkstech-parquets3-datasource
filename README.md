@@ -1,207 +1,145 @@
-# Grafana Parquet S3 Plugin
+# Parquet-S3-Datasource for Grafana
 
-A Grafana datasource plugin for querying Apache Parquet files from Amazon S3 or S3-compatible storage (MinIO, Wasabi, DigitalOcean Spaces) with full SQL support powered by DuckDB.
+**by tobiasworkstech**
 
-[![Release](https://img.shields.io/github/v/release/tobiasworkstech/tobiasworkstech-parquets3-datasource)](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/releases)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage directly in Grafana with full SQL support.
 
-## Skills & Capabilities
+## Overview
 
-### Data Querying
-| Skill | Description |
-|-------|-------------|
-| **SQL Queries** | Full SQL support with SELECT, WHERE, GROUP BY, ORDER BY, LIMIT |
-| **Aggregations** | COUNT, SUM, AVG, MIN, MAX functions |
-| **Filtering** | Complex WHERE conditions with =, !=, >, <, >=, <=, LIKE, IN, IS NULL |
-| **Sorting** | ORDER BY with ASC/DESC on multiple columns |
-| **Pagination** | LIMIT clause for result set control |
-| **Column Selection** | Select specific columns or use wildcards |
+The Parquet-S3-Datasource plugin enables you to connect Grafana to your data lake stored in Parquet format on Amazon S3, MinIO, Wasabi, DigitalOcean Spaces, or any S3-compatible storage. Leverage the efficiency of columnar Parquet files for fast analytics and visualization without needing to load data into a traditional database.
+
+## Demo
+
+Watch the plugin in action - from datasource configuration to querying Parquet files:
+
+![Plugin Demo](img/demo-full.webp)
+
+### Quick Start Example
+
+![Querying Parquet Data](img/screenshot-query-data.png)
+
+## Features
+
+### Core Features
+- **Direct Parquet File Access**: Query Parquet files directly from S3 without intermediate databases
+- **S3-Compatible Storage Support**: Works with Amazon S3, MinIO, Wasabi, DigitalOcean Spaces, and more
+- **Apache Arrow Integration**: Efficient data processing using Apache Arrow for fast query execution
+- **Configurable Endpoints**: Support for custom S3 endpoints for private cloud deployments
+- **Path-Style Routing**: Automatic configuration for S3-compatible storage that requires path-style URLs
+
+### SQL Query Support (v1.1.0+)
+- **Full SQL Syntax**: SELECT, WHERE, GROUP BY, ORDER BY, LIMIT powered by DuckDB
+- **Aggregation Functions**: COUNT, SUM, AVG, MIN, MAX
+- **Complex Filtering**: Multiple conditions with AND/OR operators
+- **Column Aliasing**: Rename columns in query results
 
 ### Visual Query Builder
-| Skill | Description |
-|-------|-------------|
-| **Point-and-Click** | Build queries without writing SQL |
-| **Column Picker** | Select columns from dropdown with type info |
-| **Aggregation Selector** | Add COUNT, SUM, AVG, MIN, MAX to columns |
-| **Filter Builder** | Visual WHERE clause construction |
-| **Group By Builder** | Multi-select GROUP BY columns |
-| **Order By Builder** | Sort configuration with direction |
-| **SQL Preview** | Real-time generated SQL display |
-| **Mode Switching** | Toggle between Builder and Code modes |
+- **PostgreSQL-Style Interface**: Familiar query building experience
+- **Column Selection**: Pick columns with optional aggregations
+- **Filter Toggle**: Build WHERE conditions visually
+- **Group Toggle**: Add GROUP BY clauses easily
+- **Order Toggle**: Sort results with ASC/DESC
+- **SQL Preview**: See the generated SQL in real-time
 
 ### Template Variables
-| Skill | Description |
-|-------|-------------|
-| **File Listing** | List parquet files from S3 bucket |
-| **Prefix Listing** | List folders/prefixes for navigation |
-| **SQL Variables** | Generate variable values from SQL queries |
-| **Regex Filtering** | Filter file lists with regex patterns |
-| **Dynamic Dashboards** | Use variables in file paths and queries |
+- **List Files**: Populate variables with parquet files from your bucket
+- **List Prefixes**: Get folder/prefix names for hierarchical navigation
+- **SQL-Based Variables**: Use SQL queries to generate variable values
+- **Regex Filtering**: Filter file lists with regex patterns
 
-### Storage Support
-| Skill | Description |
-|-------|-------------|
-| **Amazon S3** | Native AWS S3 support |
-| **MinIO** | S3-compatible local/cloud storage |
-| **Wasabi** | Cloud storage with S3 API |
-| **DigitalOcean Spaces** | DO's object storage |
-| **Custom Endpoints** | Any S3-compatible storage |
-| **Path-Style URLs** | Support for legacy S3 URL format |
+### Grafana Explore
+- **File Browser**: Select parquet files with search and filtering
+- **Builder Mode**: Visual query construction
+- **Code Mode**: Raw SQL editing with syntax highlighting
 
-### Data Format Support
-| Skill | Description |
-|-------|-------------|
-| **Parquet Files** | Apache Parquet columnar format |
-| **All Data Types** | INT, FLOAT, DOUBLE, STRING, BOOLEAN, BINARY |
-| **Nested Structures** | STRUCT, LIST, MAP types |
-| **Compression** | SNAPPY, GZIP, LZ4, ZSTD codecs |
-| **Large Files** | Efficient streaming with Arrow |
+## Requirements
 
-### Grafana Integration
-| Skill | Description |
-|-------|-------------|
-| **Explore View** | Full support in Grafana Explore |
-| **Dashboard Panels** | Table, Stat, Bar Chart, Time Series |
-| **Provisioning** | Auto-configure via YAML |
-| **Health Check** | Connection testing on save |
+- Grafana >= 11.0.0
+- S3 or S3-compatible storage with read access
+- Parquet files in your S3 bucket
 
-## Project Structure
+## Getting Started
 
-```
-├── tobiasworkstech-parquets3-datasource/   # Plugin source code
-│   ├── src/                                 # React frontend (TypeScript)
-│   │   ├── components/
-│   │   │   ├── QueryEditor.tsx              # Visual query builder
-│   │   │   ├── ConfigEditor.tsx             # Datasource configuration
-│   │   │   └── VariableQueryEditor.tsx      # Template variable editor
-│   │   ├── datasource.ts                    # Datasource implementation
-│   │   └── types.ts                         # TypeScript interfaces
-│   ├── pkg/                                 # Go backend
-│   │   ├── plugin/datasource.go             # Main datasource logic
-│   │   ├── duckdb/executor.go               # SQL query executor
-│   │   ├── parquet/reader.go                # Parquet file reader
-│   │   └── models/                          # Data models
-│   └── provisioning/                        # Grafana provisioning
-│       ├── datasources/                     # Auto-configured datasource
-│       └── dashboards/                      # Sample dashboards
-├── samples/                                 # Sample parquet files
-│   ├── iris.parquet                         # Iris flower dataset
-│   ├── titanic.parquet                      # Titanic survival dataset
-│   └── metrics_timeseries.parquet           # Time series metrics
-├── cmd/                                     # CLI tools
-├── docker-compose.yml                       # Development environment
-└── Dockerfile.grafana                       # Custom Grafana image
-```
+### Installation
 
-## Quick Start
-
-### 1. Start Development Environment
+Install the plugin using the Grafana CLI:
 
 ```bash
-docker compose up -d
+grafana-cli plugins install tobiasworkstech-parquets3-datasource
 ```
 
-- **Grafana**: http://localhost:3001
-- **MinIO Console**: http://localhost:9001 (minioadmin/minioadmin)
-
-### 2. Explore Sample Dashboards
-
-Pre-configured dashboards available:
-- **Iris Flower Dataset** - Classic ML dataset with measurements
-- **Titanic Survival Dataset** - Survival analysis with aggregations
-- **Time Series Metrics** - Server performance visualization
-- **Example Dashboard** - SQL query demonstrations
-
-### 3. Create Your Own Queries
-
-1. Go to **Explore** in Grafana
-2. Select **parquet-s3-datasource**
-3. Choose a parquet file from the dropdown
-4. Use the visual builder or write SQL directly
-
-## Building the Plugin
-
-### Frontend
+Or via Docker:
 
 ```bash
-cd tobiasworkstech-parquets3-datasource
-npm install
-npm run build
+docker run -d -p 3000:3000 \
+  -e "GF_INSTALL_PLUGINS=tobiasworkstech-parquets3-datasource" \
+  grafana/grafana
 ```
 
-### Backend
+### Configuration
 
-```bash
-cd tobiasworkstech-parquets3-datasource
+1. Navigate to **Configuration** > **Data Sources** in your Grafana instance
+2. Click **Add data source**
+3. Search for and select **Parquet-S3-Datasource**
+4. Configure the following settings:
+   - **Region**: Your S3 region (e.g., `us-east-1`)
+   - **Bucket**: The name of your S3 bucket containing Parquet files
+   - **Endpoint** (optional): Custom S3 endpoint URL (e.g., `http://minio:9000` for MinIO)
+   - **Access Key**: Your S3 access key ID
+   - **Secret Key**: Your S3 secret access key
+5. Click **Save & test** to verify the connection
 
-# Linux AMD64
-GOOS=linux GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_linux_amd64 ./pkg
+### Basic Usage
 
-# Linux ARM64 (Apple Silicon Docker)
-GOOS=linux GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_linux_arm64 ./pkg
+1. Create a new dashboard or open an existing one
+2. Add a new panel
+3. Select your Parquet-S3-Datasource as the data source
+4. Select a parquet file from the **Table** dropdown
+5. Use the visual builder or write SQL directly
+6. Click **Run query** to visualize your data
 
-# macOS ARM64
-GOOS=darwin GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_darwin_arm64 ./pkg
-
-# Windows
-GOOS=windows GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_windows_amd64.exe ./pkg
-```
-
-## SQL Query Examples
+### SQL Query Examples
 
 ```sql
--- Basic query
-SELECT * FROM parquet LIMIT 100
+-- Select all data
+SELECT * FROM parquet
 
--- Filtering
+-- Filter and sort
 SELECT name, value FROM parquet
-WHERE value > 50
+WHERE value > 100
 ORDER BY value DESC
 
 -- Aggregations
 SELECT category, COUNT(*) as count, AVG(price) as avg_price
 FROM parquet
 GROUP BY category
-ORDER BY count DESC
 
--- Column with special characters
-SELECT "sepal.length", "petal.width" FROM parquet
-
--- Multiple conditions
+-- Top N results
 SELECT * FROM parquet
-WHERE status = 'active' AND value > 100
-ORDER BY created_at DESC
-LIMIT 50
+ORDER BY timestamp DESC
+LIMIT 10
 ```
 
-## Template Variable Examples
+### Template Variable Examples
 
-### List Files Variable
-```
-Query Type: List Files
-Prefix: data/2024/
-File Pattern: *.parquet
-```
+**List all parquet files:**
+- Query Type: `List Files`
+- File Pattern: `*.parquet`
 
-### SQL-Based Variable
-```
-Query Type: SQL Query
-Path: categories.parquet
-SQL: SELECT DISTINCT category FROM parquet ORDER BY category
-```
+**List files in a folder:**
+- Query Type: `List Files`
+- Prefix: `data/2024/`
+- File Pattern: `*.parquet`
 
-## Configuration
+**SQL-based variable (unique values):**
+- Query Type: `SQL Query`
+- Path: `data.parquet`
+- SQL: `SELECT DISTINCT category FROM parquet`
 
-### MinIO (Development)
-```
-Region: us-east-1
-Bucket: parquet-data
-Endpoint: http://minio:9000
-Access Key: minioadmin
-Secret Key: minioadmin
-```
+## Configuration Examples
 
 ### Amazon S3
+
 ```
 Region: us-east-1
 Bucket: my-data-lake
@@ -210,53 +148,112 @@ Access Key: AKIA...
 Secret Key: ***
 ```
 
+### MinIO (Local Development)
+
+```
+Region: us-east-1
+Bucket: parquet-data
+Endpoint: http://minio:9000
+Access Key: minioadmin
+Secret Key: minioadmin
+```
+
 ### Wasabi
+
 ```
 Region: us-east-1
 Bucket: my-bucket
 Endpoint: https://s3.wasabisys.com
-Access Key: YOUR_KEY
+Access Key: YOUR_WASABI_KEY
 Secret Key: ***
 ```
 
-## Technical Stack
+## Supported Parquet Features
 
-| Component | Technology |
-|-----------|------------|
-| Frontend | React + TypeScript |
-| Backend | Go 1.21+ |
-| SQL Engine | DuckDB |
-| Data Format | Apache Parquet + Arrow |
-| AWS SDK | aws-sdk-go-v2 |
-| UI Components | Grafana UI |
+- All primitive data types (INT32, INT64, FLOAT, DOUBLE, BOOLEAN, BINARY, STRING)
+- Nested structures (STRUCT, LIST, MAP)
+- Compression codecs (SNAPPY, GZIP, LZ4, ZSTD)
+- Column pruning for efficient data retrieval
 
-## Release
+## Sample Dashboards
 
-**Latest Version**: v1.1.0
+The plugin includes sample dashboards demonstrating various use cases:
 
-**Download**: [tobiasworkstech-parquets3-datasource-1.1.0.zip](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/releases/download/v1.1.0/tobiasworkstech-parquets3-datasource-1.1.0.zip)
+- **Iris Dataset**: Classic ML dataset with flower measurements
+- **Titanic Dataset**: Survival analysis with aggregations
+- **Time Series Metrics**: Server metrics visualization
 
-**MD5**: `2fb5a4acb1961984002225b19d7a1ac2`
+## Troubleshooting
 
-**Supported Platforms**:
-- Linux AMD64 / ARM64
-- macOS ARM64
-- Windows AMD64
+### Connection Failed
 
-## Requirements
+- Verify your S3 credentials are correct
+- Ensure the bucket exists and is accessible
+- Check network connectivity to your S3 endpoint
+- For custom endpoints, verify the endpoint URL format
 
-- Grafana >= 11.0.0
-- S3 or S3-compatible storage
-- Parquet files in bucket
+### No Data Returned
+
+- Confirm the Parquet file path is correct
+- Ensure the file exists in the specified bucket
+- Check that your access key has read permissions
+
+### SQL Query Errors
+
+- Verify column names match exactly (case-sensitive)
+- Use double quotes for column names with special characters: `"column.name"`
+- Check SQL syntax - the plugin uses DuckDB SQL dialect
+
+### Invalid Plugin Signature (Development)
+
+For development environments, add this to your Grafana configuration:
+
+```ini
+[plugins]
+allow_loading_unsigned_plugins = tobiasworkstech-parquets3-datasource
+```
+
+## Development
+
+### Prerequisites
+
+- Go >= 1.21
+- Node.js >= 20
+- Docker and Docker Compose
+
+### Building the Plugin
+
+```bash
+# Install dependencies
+cd tobiasworkstech-parquets3-datasource
+npm install
+
+# Build frontend
+npm run build
+
+# Build backend for all platforms
+GOOS=linux GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_linux_amd64 ./pkg
+GOOS=linux GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_linux_arm64 ./pkg
+GOOS=darwin GOARCH=arm64 go build -o dist/gpx_parquet_s3_datasource_darwin_arm64 ./pkg
+GOOS=windows GOARCH=amd64 go build -o dist/gpx_parquet_s3_datasource_windows_amd64.exe ./pkg
+```
+
+### Running Locally
+
+```bash
+docker compose up -d
+```
+
+Access Grafana at `http://localhost:3001`.
 
 ## License
 
-Apache 2.0 - See [LICENSE](LICENSE) for details.
+Apache 2.0 License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions welcome! Please open an issue or PR on [GitHub](https://github.com/tobiasworkstech/parquets3-datasource).
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/tobiasworkstech/parquets3-datasource).
 
 ## Support
 
-For issues or questions, visit the [GitHub Issues](https://github.com/tobiasworkstech/parquets3-datasource/issues).
+For issues, questions, or feature requests, please visit the [GitHub repository](https://github.com/tobiasworkstech/parquets3-datasource/issues).

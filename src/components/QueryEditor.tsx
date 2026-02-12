@@ -160,15 +160,11 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
   // Load files from S3 on mount
   useEffect(() => {
     const loadFiles = async () => {
-      console.log('QueryEditor: Loading files, datasource:', datasource);
-      console.log('QueryEditor: datasource.type:', datasource?.type, 'uid:', datasource?.uid);
       setFilesLoading(true);
       try {
         const result = await datasource.listFiles('', '*.parquet');
-        console.log('QueryEditor: Files loaded:', result);
         setAllFiles(result);
-      } catch (error) {
-        console.error('QueryEditor: Failed to load files:', error);
+      } catch {
         setAllFiles([]);
       } finally {
         setFilesLoading(false);
@@ -219,8 +215,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
           description: col.type,
         }));
         setColumns(columnOptions);
-      } catch (error) {
-        console.error('Failed to load columns:', error);
+      } catch {
         setColumns([]);
       } finally {
         setLoading(false);
@@ -331,8 +326,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     try {
       const result = await datasource.listFiles('', '*.parquet');
       setAllFiles(result);
-    } catch (error) {
-      console.error('Failed to refresh files:', error);
+    } catch {
+      // Failed to refresh files
     } finally {
       setFilesLoading(false);
     }
