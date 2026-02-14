@@ -304,11 +304,28 @@ func convertArrowColumnToField(name string, col *arrow.Column, fieldType arrow.D
 		}
 		return data.NewField(name, nil, values)
 
-	case arrow.STRING, arrow.LARGE_STRING:
+	case arrow.STRING:
 		values := make([]*string, numRows)
 		idx := 0
 		for _, chunk := range chunks {
 			arr := chunk.(*array.String)
+			for j := 0; j < arr.Len(); j++ {
+				if arr.IsNull(j) {
+					values[idx] = nil
+				} else {
+					v := arr.Value(j)
+					values[idx] = &v
+				}
+				idx++
+			}
+		}
+		return data.NewField(name, nil, values)
+
+	case arrow.LARGE_STRING:
+		values := make([]*string, numRows)
+		idx := 0
+		for _, chunk := range chunks {
+			arr := chunk.(*array.LargeString)
 			for j := 0; j < arr.Len(); j++ {
 				if arr.IsNull(j) {
 					values[idx] = nil

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-02-14
+
+### Bug Fixes
+
+- **Fix LARGE_STRING Parquet panic**: Pandas-generated Parquet files use `LARGE_STRING` Arrow type, which caused a panic in the Parquet reader. Separated `arrow.LARGE_STRING` and `arrow.STRING` handling with proper type assertions.
+- **Fix GROUP BY not aggregating**: GROUP BY queries returned one row per record instead of grouped results. The SQL executor was using pointer addresses as group keys (`*int64`, `*string`). Added `formatValue()` helper to dereference pointers before grouping.
+- **Fix Titanic dashboard bar charts**: Grafana barchart panels require a string x-axis but `Pclass` is int64. Changed to table panels with gauge cell rendering.
+
+### Improvements
+
+- Added Playwright E2E tests verifying all 4 provisioned dashboards load with correct data
+- Added Docker Compose dev environment (`docker/docker-compose.yml`) with MinIO and sample data generation
+- Updated all provisioned dashboard JSON files for Grafana compatibility
+- Added `CLAUDE.md` project documentation
+
 ## [1.1.0] - 2026-02-02
 
 ### Features

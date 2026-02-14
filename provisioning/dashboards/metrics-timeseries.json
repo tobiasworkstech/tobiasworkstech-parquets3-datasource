@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -113,7 +113,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT timestamp, host, cpu_percent FROM parquet ORDER BY timestamp",
@@ -126,7 +126,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -214,7 +214,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT timestamp, host, memory_percent FROM parquet ORDER BY timestamp",
@@ -227,7 +227,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -315,7 +315,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT timestamp, host, disk_percent FROM parquet ORDER BY timestamp",
@@ -328,7 +328,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -406,7 +406,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT timestamp, host, network_mbps FROM parquet ORDER BY timestamp",
@@ -419,7 +419,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -497,7 +497,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT timestamp, host, requests FROM parquet ORDER BY timestamp",
@@ -510,7 +510,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -592,7 +592,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT timestamp, host, errors FROM parquet ORDER BY timestamp",
@@ -605,7 +605,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -659,7 +659,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT ROUND(AVG(cpu_percent), 1) as avg_cpu FROM parquet",
@@ -672,7 +672,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -726,7 +726,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT ROUND(AVG(memory_percent), 1) as avg_memory FROM parquet",
@@ -739,7 +739,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -793,7 +793,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT ROUND(AVG(disk_percent), 1) as avg_disk FROM parquet",
@@ -806,7 +806,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -856,7 +856,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "metrics_timeseries.parquet",
           "sqlQuery": "SELECT host, COUNT(*) as data_points, ROUND(AVG(cpu_percent), 2) as avg_cpu, ROUND(AVG(memory_percent), 2) as avg_memory, ROUND(AVG(disk_percent), 2) as avg_disk, ROUND(AVG(network_mbps), 2) as avg_network, SUM(requests) as total_requests, SUM(errors) as total_errors FROM parquet GROUP BY host ORDER BY host",
@@ -870,7 +870,22 @@
   "schemaVersion": 39,
   "tags": ["parquet", "s3", "timeseries", "metrics", "monitoring"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "tobiasworkstech-parquets3-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
   },
   "time": {
     "from": "now-7d",

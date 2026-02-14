@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -75,7 +75,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "iris.parquet",
           "sqlQuery": "SELECT * FROM parquet LIMIT 20",
@@ -88,7 +88,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -135,7 +135,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "iris.parquet",
           "sqlQuery": "SELECT COUNT(*) AS total FROM parquet",
@@ -148,7 +148,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -198,7 +198,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "iris.parquet",
           "sqlQuery": "SELECT variety, COUNT(*) AS count FROM parquet GROUP BY variety ORDER BY count DESC",
@@ -211,7 +211,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -261,7 +261,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "iris.parquet",
           "sqlQuery": "SELECT AVG(\"sepal.length\") AS avg_sepal_length, AVG(\"sepal.width\") AS avg_sepal_width, AVG(\"petal.length\") AS avg_petal_length, AVG(\"petal.width\") AS avg_petal_width FROM parquet",
@@ -274,7 +274,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -348,7 +348,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "iris.parquet",
           "sqlQuery": "SELECT variety, AVG(\"sepal.length\") AS avg_sepal_length FROM parquet GROUP BY variety",
@@ -361,7 +361,7 @@
     {
       "datasource": {
         "type": "tobiasworkstech-parquets3-datasource",
-        "uid": "P10510B1EF8166CFC"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -435,7 +435,7 @@
         {
           "datasource": {
             "type": "tobiasworkstech-parquets3-datasource",
-            "uid": "P10510B1EF8166CFC"
+            "uid": "${datasource}"
           },
           "path": "iris.parquet",
           "sqlQuery": "SELECT variety, AVG(\"petal.length\") AS avg_petal_length FROM parquet GROUP BY variety",
@@ -449,7 +449,22 @@
   "schemaVersion": 39,
   "tags": ["parquet", "s3", "iris", "ml", "dataset"],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "tobiasworkstech-parquets3-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",

@@ -350,7 +350,7 @@ func aggregateByGroup(frame *data.Frame, aggCols []aggregationColumn, groupByCol
 		for j, colName := range groupByColumns {
 			field := findField(frame, colName)
 			if field != nil {
-				keyParts[j] = fmt.Sprintf("%v", field.At(i))
+				keyParts[j] = formatValue(field.At(i))
 			}
 		}
 		key := strings.Join(keyParts, "|")
@@ -530,6 +530,42 @@ func calculateMaxForRows(frame *data.Frame, colName string, rows []int) float64 
 		return 0
 	}
 	return *max
+}
+
+// formatValue dereferences pointer values for proper string representation
+func formatValue(v interface{}) string {
+	if v == nil {
+		return "<nil>"
+	}
+	switch val := v.(type) {
+	case *string:
+		if val == nil {
+			return "<nil>"
+		}
+		return *val
+	case *int64:
+		if val == nil {
+			return "<nil>"
+		}
+		return fmt.Sprintf("%d", *val)
+	case *float64:
+		if val == nil {
+			return "<nil>"
+		}
+		return fmt.Sprintf("%g", *val)
+	case *uint64:
+		if val == nil {
+			return "<nil>"
+		}
+		return fmt.Sprintf("%d", *val)
+	case *bool:
+		if val == nil {
+			return "<nil>"
+		}
+		return fmt.Sprintf("%v", *val)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
 }
 
 func getNumericValue(v interface{}) *float64 {
