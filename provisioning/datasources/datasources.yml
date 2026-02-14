@@ -16,4 +16,4 @@ datasources:
       endpoint: 'http://minio:9000'
     secureJsonData:
       accessKey: 'minioadmin'
-      secretKey: 'minioadmin'
+      secretKey: 'minioadmin123'
