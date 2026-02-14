@@ -7,10 +7,10 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
 )
 
-func TestQueryData(t *testing.T) {
+func TestQueryDataReturnsErrorWithoutConfig(t *testing.T) {
 	ds := Datasource{}
 
-	resp, err := ds.QueryData(
+	_, err := ds.QueryData(
 		context.Background(),
 		&backend.QueryDataRequest{
 			Queries: []backend.DataQuery{
@@ -18,11 +18,7 @@ func TestQueryData(t *testing.T) {
 			},
 		},
 	)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if len(resp.Responses) != 1 {
-		t.Fatal("QueryData must return a response")
+	if err == nil {
+		t.Error("expected error when datasource is not configured, got nil")
 	}
 }

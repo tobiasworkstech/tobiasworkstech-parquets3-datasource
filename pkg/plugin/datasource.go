@@ -88,6 +88,9 @@ func (d *Datasource) getAWSConfig(ctx context.Context, region string) (aws.Confi
 
 // getS3Client creates an S3 client with the proper configuration
 func (d *Datasource) getS3Client(ctx context.Context) (*s3.Client, error) {
+	if d.settings == nil {
+		return nil, fmt.Errorf("datasource settings not configured")
+	}
 	region := d.settings.Region
 	if region == "" {
 		region = d.settings.DefaultRegion
