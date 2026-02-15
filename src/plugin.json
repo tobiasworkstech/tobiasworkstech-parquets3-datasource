@@ -32,21 +32,41 @@
     "links": [
       {
         "name": "GitHub",
-        "url": "https://github.com/tobiasworkstech/parquets3-datasource"
+        "url": "https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource"
       },
       {
         "name": "Documentation",
-        "url": "https://github.com/tobiasworkstech/parquets3-datasource#readme"
+        "url": "https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource#readme"
       }
     ],
     "screenshots": [
       {
         "name": "Query Editor",
-        "path": "img/screenshot-query-data.png"
+        "path": "img/query-editor.png"
       },
       {
-        "name": "Demo Dashboard",
-        "path": "img/demo-full.webp"
+        "name": "Datasource Configuration",
+        "path": "img/datasource-config.png"
+      },
+      {
+        "name": "Iris Flower Dataset Dashboard",
+        "path": "img/dashboard-iris.png"
+      },
+      {
+        "name": "Titanic Survival Dataset Dashboard",
+        "path": "img/dashboard-titanic.png"
+      },
+      {
+        "name": "Server Metrics Time-Series Dashboard",
+        "path": "img/dashboard-metrics.png"
+      },
+      {
+        "name": "Parquet S3 Example Dashboard",
+        "path": "img/dashboard-example.png"
+      },
+      {
+        "name": "Template Variables",
+        "path": "img/template-variables.png"
       }
     ],
     "version": "%VERSION%",

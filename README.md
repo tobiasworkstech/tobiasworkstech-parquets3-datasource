@@ -8,15 +8,25 @@ Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible st
 
 The Parquet-S3-Datasource plugin enables you to connect Grafana to your data lake stored in Parquet format on Amazon S3, MinIO, Wasabi, DigitalOcean Spaces, or any S3-compatible storage. Leverage the efficiency of columnar Parquet files for fast analytics and visualization without needing to load data into a traditional database.
 
-## Demo
+## Screenshots
 
-Watch the plugin in action - from datasource configuration to querying Parquet files:
+### Query Editor
+![Query Editor](src/img/query-editor.png)
 
-![Plugin Demo](img/demo-full.webp)
+### Datasource Configuration
+![Datasource Configuration](src/img/datasource-config.png)
 
-### Quick Start Example
+### Iris Flower Dataset Dashboard
+![Iris Dashboard](src/img/dashboard-iris.png)
 
-![Querying Parquet Data](img/screenshot-query-data.png)
+### Titanic Survival Dataset Dashboard
+![Titanic Dashboard](src/img/dashboard-titanic.png)
+
+### Server Metrics Time-Series Dashboard
+![Metrics Dashboard](src/img/dashboard-metrics.png)
+
+### Template Variables
+![Template Variables](src/img/template-variables.png)
 
 ## Features
 
@@ -252,8 +262,8 @@ Apache 2.0 License - see [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/tobiasworkstech/parquets3-datasource).
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource).
 
 ## Support
 
-For issues, questions, or feature requests, please visit the [GitHub repository](https://github.com/tobiasworkstech/parquets3-datasource/issues).
+For issues, questions, or feature requests, please visit the [GitHub repository](https://github.com/tobiasworkstech/tobiasworkstech-parquets3-datasource/issues).
