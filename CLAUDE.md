@@ -137,6 +137,69 @@ Despite the package name `duckdb`, this is a **custom in-memory SQL executor** �
 3. Add UI control in `src/components/QueryEditor.tsx`
 4. Handle in query execution logic in `pkg/duckdb/executor.go`
 
+## Release Process
+
+### Automated (CI)
+```bash
+npm version patch        # Bumps version, commits, creates tag
+git push origin main --tags  # Triggers release workflow
+```
+The release workflow (`grafana/plugin-actions/build-plugin@main`) builds, signs, and publishes the zip automatically.
+
+### Manual Release (when CI signing fails)
+Use this when the `GRAFANA_ACCESS_POLICY_TOKEN` is expired or misconfigured:
+
+```bash
+# 1. Bump version
+npm version patch
+git push origin main --tags
+
+# 2. Update dist/plugin.json version and updated date manually
+
+# 3. Package with correct archive structure (root dir must be the plugin ID, NOT dist/)
+PLUGIN_ID="tobiasworkstech-parquets3-datasource"
+PLUGIN_VERSION="1.2.4"   # match dist/plugin.json
+ARCHIVE="${PLUGIN_ID}-${PLUGIN_VERSION}.zip"
+rm -f "${ARCHIVE}"
+cp -r dist "${PLUGIN_ID}"
+zip "${ARCHIVE}" "${PLUGIN_ID}" -r
+rm -rf "${PLUGIN_ID}"
+
+# 4. Create GitHub release and attach zip
+gh release create v${PLUGIN_VERSION} "${ARCHIVE}" \
+  --repo tobiasworkstech/tobiasworkstech-parquets3-datasource \
+  --title "Parquet-S3-Datasource v${PLUGIN_VERSION}" \
+  --notes "Release notes here." \
+  --latest
+```
+
+### Known CI Signing Issue
+**Symptom**: Release workflow fails at signing step with:
+```
+sign-plugin@3.2.1  Error signing manifest.
+Server responded with status code 409 along with:
+ • code: InvalidArgument
+ • message: Field is required: rootUrls
+```
+**Cause**: `GRAFANA_ACCESS_POLICY_TOKEN` secret is expired or was created as a private plugin token instead of a community plugin token.
+**Fix**: Regenerate the token on Grafana's portal (grafana.com → My Account → Access Policies) with `plugins:write` scope for a **community plugin** (no rootUrls required), then update the `GRAFANA_ACCESS_POLICY_TOKEN` secret in GitHub repo Settings → Secrets and variables → Actions.
+
+### Archive Structure (Critical)
+The zip must contain the plugin ID as the root directory — **not** `dist/`:
+```
+tobiasworkstech-parquets3-datasource/   ← correct
+  plugin.json
+  module.js
+  gpx_parquet_s3_datasource_*
+  ...
+```
+If submitted with `dist/` as root, Grafana validator returns: `❌ no-ident-root-dir`
+
+### Grafana Marketplace Submission
+- Submit the zip manually at Grafana's plugin submission portal
+- MD5 checksum: `md5 <archive>.zip`
+- Re-run a failed release workflow: `gh run rerun <run-id> --repo tobiasworkstech/tobiasworkstech-parquets3-datasource`
+
 ## Rules
 - **`.config/` directory is managed by Grafana plugin tools — DO NOT MODIFY**
 - **Never commit files containing `valdemarpavesi`** — use `tobiasworkstech` in all committed code
