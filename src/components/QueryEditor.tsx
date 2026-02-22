@@ -7,8 +7,9 @@ import {
   Icon,
   InlineSwitch,
   TextArea,
+  useStyles2,
 } from '@grafana/ui';
-import { QueryEditorProps, SelectableValue } from '@grafana/data';
+import { QueryEditorProps, SelectableValue, GrafanaTheme2 } from '@grafana/data';
 import { DataSource } from '../datasource';
 import { MyDataSourceOptions, MyQuery } from '../types';
 import { css } from '@emotion/css';
@@ -34,81 +35,114 @@ interface OrderByItem {
   direction: 'ASC' | 'DESC';
 }
 
-const styles = {
-  headerRow: css`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border-weak);
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-  `,
-  headerSection: css`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  `,
-  modeButtons: css`
-    display: flex;
-    margin-left: auto;
-  `,
-  modeButton: css`
-    padding: 4px 12px;
-    border: 1px solid var(--border-medium);
-    background: transparent;
-    cursor: pointer;
-    font-size: 12px;
-    &:first-of-type {
-      border-radius: 4px 0 0 4px;
-    }
-    &:last-of-type {
-      border-radius: 0 4px 4px 0;
-      border-left: none;
-    }
-  `,
-  modeButtonActive: css`
-    background: var(--primary-main);
-    color: white;
-    border-color: var(--primary-main);
-  `,
-  sectionRow: css`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 0;
-  `,
-  columnRow: css`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 0;
-  `,
-  label: css`
-    font-size: 12px;
-    color: var(--text-secondary);
-    min-width: 80px;
-  `,
-  addButton: css`
-    margin-top: 8px;
-  `,
-  codeEditor: css`
-    margin-top: 16px;
-  `,
-  toggleLabel: css`
-    font-size: 12px;
-    margin-right: 4px;
-  `,
-  fileSelector: css`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  `,
-  filterInput: css`
-    font-size: 12px;
-  `,
-};
+const getStyles = (theme: GrafanaTheme2) => ({
+  headerRow: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(2),
+    padding: `${theme.spacing(1)} 0`,
+    borderBottom: `1px solid ${theme.colors.border.weak}`,
+    marginBottom: theme.spacing(2),
+    flexWrap: 'wrap',
+  }),
+  headerSection: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+  }),
+  modeButtons: css({
+    display: 'flex',
+    marginLeft: 'auto',
+  }),
+  modeButton: css({
+    padding: `${theme.spacing(0.5)} ${theme.spacing(1.5)}`,
+    border: `1px solid ${theme.colors.border.medium}`,
+    background: 'transparent',
+    cursor: 'pointer',
+    fontSize: theme.typography.bodySmall.fontSize,
+    '&:first-of-type': {
+      borderRadius: `${theme.shape.borderRadius(1)} 0 0 ${theme.shape.borderRadius(1)}`,
+    },
+    '&:last-of-type': {
+      borderRadius: `0 ${theme.shape.borderRadius(1)} ${theme.shape.borderRadius(1)} 0`,
+      borderLeft: 'none',
+    },
+  }),
+  modeButtonActive: css({
+    background: theme.colors.primary.main,
+    color: theme.colors.primary.contrastText,
+    borderColor: theme.colors.primary.main,
+  }),
+  sectionRow: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    padding: `${theme.spacing(1)} 0`,
+  }),
+  columnRow: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    padding: `${theme.spacing(0.5)} 0`,
+  }),
+  label: css({
+    fontSize: theme.typography.bodySmall.fontSize,
+    color: theme.colors.text.secondary,
+    minWidth: theme.spacing(10),
+  }),
+  addButton: css({
+    marginTop: theme.spacing(1),
+  }),
+  codeEditor: css({
+    marginTop: theme.spacing(2),
+  }),
+  toggleLabel: css({
+    fontSize: theme.typography.bodySmall.fontSize,
+    marginRight: theme.spacing(0.5),
+  }),
+  fileSelector: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    flexWrap: 'wrap',
+  }),
+  filterInput: css({
+    fontSize: theme.typography.bodySmall.fontSize,
+  }),
+  sectionContainer: css({
+    marginTop: theme.spacing(2),
+  }),
+  sectionTitle: css({
+    marginBottom: theme.spacing(1),
+    fontWeight: theme.typography.fontWeightMedium,
+    fontSize: theme.typography.body.fontSize,
+  }),
+  sectionTitleMuted: css({
+    marginBottom: theme.spacing(1),
+    fontWeight: theme.typography.fontWeightMedium,
+    fontSize: theme.typography.body.fontSize,
+    color: theme.colors.text.secondary,
+  }),
+  fileCount: css({
+    fontSize: theme.typography.bodySmall.fontSize,
+    color: theme.colors.text.secondary,
+  }),
+  sqlPreview: css({
+    background: theme.colors.background.secondary,
+    padding: theme.spacing(1.5),
+    borderRadius: theme.shape.borderRadius(1),
+    fontFamily: theme.typography.fontFamilyMonospace,
+    fontSize: theme.typography.bodySmall.fontSize,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-all',
+  }),
+  fileSelectorWrapper: css({
+    marginBottom: theme.spacing(1),
+  }),
+  textArea: css({
+    fontFamily: theme.typography.fontFamilyMonospace,
+  }),
+});
 
 const formatOptions: Array<SelectableValue<string>> = [
   { label: 'Table', value: 'table' },
@@ -138,6 +172,7 @@ const operatorOptions: Array<SelectableValue<string>> = [
 ];
 
 export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
+  const styles = useStyles2(getStyles);
   const [editorMode, setEditorMode] = useState<EditorMode>('builder');
   const [allFiles, setAllFiles] = useState<string[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
@@ -415,7 +450,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
         <Icon name="sync" />
       </Button>
       {allFiles.length > 0 && (
-        <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+        <span className={styles.fileCount}>
           {filteredFileOptions.length} of {allFiles.length} files
         </span>
       )}
@@ -500,8 +535,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
           </div>
 
           {/* Column Selections */}
-          <div style={{ marginTop: '16px' }}>
-            <div style={{ marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Columns</div>
+          <div className={styles.sectionContainer}>
+            <div className={styles.sectionTitle}>Columns</div>
             {columnSelections.map((selection, index) => (
               <div key={index} className={styles.columnRow}>
                 <Select
@@ -543,8 +578,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
 
           {/* Filter (WHERE) Section */}
           {filterEnabled && (
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Filter (WHERE)</div>
+            <div className={styles.sectionContainer}>
+              <div className={styles.sectionTitle}>Filter (WHERE)</div>
               {whereConditions.map((condition, index) => (
                 <div key={index} className={styles.columnRow}>
                   <Select
@@ -581,8 +616,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
 
           {/* Group By Section */}
           {groupEnabled && (
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Group By</div>
+            <div className={styles.sectionContainer}>
+              <div className={styles.sectionTitle}>Group By</div>
               <div className={styles.sectionRow}>
                 <Select
                   options={columns}
@@ -600,8 +635,8 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
 
           {/* Order By Section */}
           {orderEnabled && (
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>Order By</div>
+            <div className={styles.sectionContainer}>
+              <div className={styles.sectionTitle}>Order By</div>
               {orderByItems.map((item, index) => (
                 <div key={index} className={styles.columnRow}>
                   <Select
@@ -632,7 +667,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
           )}
 
           {/* Limit */}
-          <div style={{ marginTop: '16px' }}>
+          <div className={styles.sectionContainer}>
             <InlineField label="Limit" labelWidth={8}>
               <Input
                 value={limit}
@@ -646,19 +681,9 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
 
           {/* Generated SQL Preview */}
           {previewEnabled && (
-            <div style={{ marginTop: '16px' }}>
-              <div style={{ marginBottom: '8px', fontWeight: 500, fontSize: '14px', color: 'var(--text-secondary)' }}>
-                Generated SQL
-              </div>
-              <div style={{
-                background: 'var(--background-secondary)',
-                padding: '12px',
-                borderRadius: '4px',
-                fontFamily: 'monospace',
-                fontSize: '12px',
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-all'
-              }}>
+            <div className={styles.sectionContainer}>
+              <div className={styles.sectionTitleMuted}>Generated SQL</div>
+              <div className={styles.sqlPreview}>
                 {buildSQL() || 'Select a table to generate SQL'}
               </div>
             </div>
@@ -667,18 +692,18 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
       ) : (
         /* Code Mode */
         <div className={styles.codeEditor}>
-          <div style={{ marginBottom: '8px' }}>
+          <div className={styles.fileSelectorWrapper}>
             <FileSelector />
           </div>
-          <div style={{ marginTop: '16px' }}>
-            <div style={{ marginBottom: '8px', fontWeight: 500, fontSize: '14px' }}>SQL Query</div>
+          <div className={styles.sectionContainer}>
+            <div className={styles.sectionTitle}>SQL Query</div>
             <TextArea
               value={sqlQuery || ''}
               onChange={(e) => onSqlQueryChange(e.currentTarget.value)}
               onBlur={onRunQuery}
               placeholder="SELECT * FROM parquet WHERE column > 10 ORDER BY column DESC LIMIT 100"
               rows={8}
-              style={{ fontFamily: 'monospace' }}
+              className={styles.textArea}
             />
           </div>
         </div>
