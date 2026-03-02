@@ -100,7 +100,7 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
   /**
    * List parquet files in the bucket
    */
-  async listFiles(prefix: string = '', pattern: string = '*.parquet'): Promise<string[]> {
+  async listFiles(prefix = '', pattern = '*.parquet'): Promise<string[]> {
     try {
       // Use metricFindQuery which already handles the response format correctly
       const results = await this.metricFindQuery({
