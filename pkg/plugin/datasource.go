@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"path/filepath"
 	"strings"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/grafana/grafana-aws-sdk/pkg/awsauth"
 	"github.com/grafana/grafana-aws-sdk/pkg/awsds"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -66,6 +66,11 @@ func (d *Datasource) Dispose() {
 
 // getAWSConfig creates an AWS config using the grafana-aws-sdk auth provider
 func (d *Datasource) getAWSConfig(ctx context.Context, region string) (aws.Config, error) {
+	httpClient, err := httpclient.New()
+	if err != nil {
+		return aws.Config{}, fmt.Errorf("failed to create HTTP client: %w", err)
+	}
+
 	authSettings := awsauth.Settings{
 		LegacyAuthType:     d.settings.AuthType,
 		AssumeRoleARN:      d.settings.AssumeRoleARN,
@@ -75,7 +80,7 @@ func (d *Datasource) getAWSConfig(ctx context.Context, region string) (aws.Confi
 		AccessKey:          d.settings.AccessKey,
 		SecretKey:          d.settings.SecretKey,
 		CredentialsProfile: d.settings.Profile,
-		HTTPClient:         &http.Client{},
+		HTTPClient:         httpClient,
 	}
 
 	cfg, err := d.awsConfigProvider.GetConfig(ctx, authSettings)
@@ -146,7 +151,7 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
 	}
 
-	log.DefaultLogger.Info("Query received", "refID", query.RefID, "queryType", qm.QueryType, "variableQueryType", qm.VariableQueryType, "path", qm.Path, "filePattern", qm.FilePattern, "rawJSON", string(query.JSON))
+	log.DefaultLogger.Debug("Query received", "refID", query.RefID, "queryType", qm.QueryType, "variableQueryType", qm.VariableQueryType, "path", qm.Path, "filePattern", qm.FilePattern)
 
 	// Handle variable queries - check queryType, variableQueryType, or empty path with refId="variable"
 	if qm.QueryType == "variable" || qm.VariableQueryType != "" || (qm.Path == "" && query.RefID == "variable") {
