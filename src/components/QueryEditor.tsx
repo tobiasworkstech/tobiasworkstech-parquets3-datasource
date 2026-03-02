@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import {
   InlineField,
   Input,
@@ -11,29 +11,12 @@ import {
 } from '@grafana/ui';
 import { QueryEditorProps, SelectableValue, GrafanaTheme2 } from '@grafana/data';
 import { DataSource } from '../datasource';
-import { MyDataSourceOptions, MyQuery } from '../types';
+import { MyDataSourceOptions, MyQuery, ColumnSelection, WhereCondition, OrderByItem } from '../types';
 import { css } from '@emotion/css';
 
 type Props = QueryEditorProps<DataSource, MyQuery, MyDataSourceOptions>;
 
 type EditorMode = 'builder' | 'code';
-
-interface ColumnSelection {
-  column: string;
-  alias: string;
-  aggregation: string;
-}
-
-interface WhereCondition {
-  column: string;
-  operator: string;
-  value: string;
-}
-
-interface OrderByItem {
-  column: string;
-  direction: 'ASC' | 'DESC';
-}
 
 const getStyles = (theme: GrafanaTheme2) => ({
   headerRow: css({
@@ -173,24 +156,33 @@ const operatorOptions: Array<SelectableValue<string>> = [
 
 export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) {
   const styles = useStyles2(getStyles);
-  const [editorMode, setEditorMode] = useState<EditorMode>('builder');
+  const [editorMode, setEditorMode] = useState<EditorMode>(query.editorMode || 'builder');
   const [allFiles, setAllFiles] = useState<string[]>([]);
   const [filesLoading, setFilesLoading] = useState(false);
   const [fileFilter, setFileFilter] = useState('');
   const [columns, setColumns] = useState<Array<SelectableValue<string>>>([]);
-  const [columnSelections, setColumnSelections] = useState<ColumnSelection[]>([{ column: '', alias: '', aggregation: '' }]);
-  const [whereConditions, setWhereConditions] = useState<WhereCondition[]>([]);
-  const [orderByItems, setOrderByItems] = useState<OrderByItem[]>([]);
-  const [groupByColumns, setGroupByColumns] = useState<string[]>([]);
-  const [limit, setLimit] = useState<string>('');
+  const [columnSelections, setColumnSelections] = useState<ColumnSelection[]>(
+    query.columnSelections?.length ? query.columnSelections : [{ column: '', alias: '', aggregation: '' }]
+  );
+  const [whereConditions, setWhereConditions] = useState<WhereCondition[]>(query.whereConditions || []);
+  const [orderByItems, setOrderByItems] = useState<OrderByItem[]>(query.orderByItems || []);
+  const [groupByColumns, setGroupByColumns] = useState<string[]>(query.groupByColumns || []);
+  const [limit, setLimit] = useState<string>(query.queryLimit || '');
   const [loading, setLoading] = useState(false);
 
   // Toggle states
-  const [filterEnabled, setFilterEnabled] = useState(false);
-  const [groupEnabled, setGroupEnabled] = useState(false);
-  const [orderEnabled, setOrderEnabled] = useState(false);
+  const [filterEnabled, setFilterEnabled] = useState(query.filterEnabled ?? false);
+  const [groupEnabled, setGroupEnabled] = useState(query.groupEnabled ?? false);
+  const [orderEnabled, setOrderEnabled] = useState(query.orderEnabled ?? false);
   const [previewEnabled, setPreviewEnabled] = useState(true);
-  const [format, setFormat] = useState<'table' | 'time_series'>('table');
+  const [format, setFormat] = useState<'table' | 'time_series'>(query.format || 'table');
+
+  // Refs to avoid stale closures in the SQL sync effect
+  const isFirstRender = useRef(true);
+  const queryRef = useRef(query);
+  queryRef.current = query;
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   // Load files from S3 on mount
   useEffect(() => {
@@ -331,15 +323,33 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     return sql;
   }, [columnSelections, whereConditions, orderByItems, groupByColumns, limit, query.path, filterEnabled, groupEnabled, orderEnabled]);
 
-  // Sync SQL when builder options change
+  // Sync SQL and full builder state to query when builder options change.
+  // Skips the first render to avoid overwriting a persisted query with default local state.
   useEffect(() => {
-    if (editorMode === 'builder') {
-      const sql = buildSQL();
-      if (sql !== query.sqlQuery) {
-        onChange({ ...query, sqlQuery: sql, format });
-      }
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, [editorMode, buildSQL, query, onChange, format]);
+    if (editorMode !== 'builder') {
+      return;
+    }
+    const sql = buildSQL();
+    onChangeRef.current({
+      ...queryRef.current,
+      sqlQuery: sql,
+      format,
+      editorMode,
+      columnSelections,
+      whereConditions,
+      orderByItems,
+      groupByColumns,
+      queryLimit: limit,
+      filterEnabled,
+      groupEnabled,
+      orderEnabled,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editorMode, buildSQL, format, columnSelections, whereConditions, orderByItems, groupByColumns, limit, filterEnabled, groupEnabled, orderEnabled]);
 
   const onPathChange = (value: SelectableValue<string>) => {
     onChange({ ...query, path: value?.value || '' });
@@ -466,7 +476,11 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
           <Select
             options={formatOptions}
             value={formatOptions.find((f) => f.value === format)}
-            onChange={(v) => setFormat((v?.value as 'table' | 'time_series') || 'table')}
+            onChange={(v) => {
+              const newFormat = (v?.value as 'table' | 'time_series') || 'table';
+              setFormat(newFormat);
+              onChange({ ...query, format: newFormat, editorMode });
+            }}
             width={15}
           />
         </div>
@@ -514,13 +528,19 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
         <div className={styles.modeButtons}>
           <button
             className={`${styles.modeButton} ${editorMode === 'builder' ? styles.modeButtonActive : ''}`}
-            onClick={() => setEditorMode('builder')}
+            onClick={() => {
+              setEditorMode('builder');
+              onChange({ ...query, editorMode: 'builder' });
+            }}
           >
             Builder
           </button>
           <button
             className={`${styles.modeButton} ${editorMode === 'code' ? styles.modeButtonActive : ''}`}
-            onClick={() => setEditorMode('code')}
+            onClick={() => {
+              setEditorMode('code');
+              onChange({ ...query, editorMode: 'code' });
+            }}
           >
             Code
           </button>
