@@ -16,7 +16,6 @@ type PluginSettings struct {
 
 func LoadPluginSettings(ctx backend.PluginContext, source backend.DataSourceInstanceSettings) (*PluginSettings, error) {
 	settings := PluginSettings{}
-	backend.Logger.Info("Loading plugin settings", "json", string(source.JSONData))
 	err := json.Unmarshal(source.JSONData, &settings)
 	if err != nil {
 		return nil, fmt.Errorf("could not unmarshal PluginSettings json: %w", err)
