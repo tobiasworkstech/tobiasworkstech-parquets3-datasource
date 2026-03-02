@@ -83,7 +83,7 @@ jobs:
 
       - name: Sign plugin
         run: npm run sign
-        if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN != '' }}
+        if: ${{ env.GRAFANA_ACCESS_POLICY_TOKEN != '' && github.event_name != 'pull_request' }}
 
       - name: Get plugin metadata
         id: metadata
