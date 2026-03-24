@@ -2,6 +2,7 @@ apiVersion: 1
 
 datasources:
   - name: 'parquet-s3-datasource'
+    uid: 'parquet-s3'
     type: 'tobiasworkstech-parquets3-datasource'
     access: proxy
     isDefault: true

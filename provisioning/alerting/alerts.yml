@@ -1,0 +1,62 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: parquet-s3-alerts
+    folder: Parquet S3 Alerts
+    interval: 1m
+    rules:
+      - uid: parquet-s3-high-cpu
+        title: High CPU Alert (Parquet S3)
+        condition: C
+        noDataState: NoData
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: Average CPU usage exceeds 50%
+          description: >
+            The average CPU usage across all hosts in metrics_timeseries.parquet
+            is above the 50% threshold. Current value: {{ $values.B }}.
+        labels:
+          severity: warning
+          source: parquet-s3
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: parquet-s3
+            model:
+              refId: A
+              queryType: ""
+              path: metrics_timeseries.parquet
+              sqlQuery: "SELECT AVG(cpu_percent) as avg_cpu FROM data"
+          - refId: B
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "-100"
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [0]
+          - refId: C
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "-100"
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [50]

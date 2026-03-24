@@ -69,6 +69,10 @@ func ReadParquetFromS3(ctx context.Context, s3Client *s3.Client, bucket, key str
 		return nil, fmt.Errorf("head object: %w", err)
 	}
 
+	if head.ContentLength == nil {
+		return nil, fmt.Errorf("missing content length for s3://%s/%s", bucket, key)
+	}
+
 	readerAt := &S3ReaderAt{
 		Ctx:      ctx,
 		S3Client: s3Client,

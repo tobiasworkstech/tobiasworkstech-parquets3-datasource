@@ -42,7 +42,7 @@ func NewDatasource(ctx context.Context, settings backend.DataSourceInstanceSetti
 		return nil, err
 	}
 
-	log.DefaultLogger.Info("Initializing S3 datasource", "region", s.Region, "endpoint", s.Endpoint, "authType", s.AuthType)
+	log.DefaultLogger.Debug("Initializing S3 datasource", "region", s.Region, "endpoint", s.Endpoint, "authType", s.AuthType)
 
 	return &Datasource{
 		awsConfigProvider: awsauth.NewConfigProvider(),
@@ -109,7 +109,7 @@ func (d *Datasource) getS3Client(ctx context.Context) (*s3.Client, error) {
 	return s3.NewFromConfig(cfg, func(o *s3.Options) {
 		if d.settings.Endpoint != "" {
 			o.UsePathStyle = true
-			log.DefaultLogger.Info("Applying Path-Style routing", "endpoint", d.settings.Endpoint)
+			log.DefaultLogger.Debug("Applying Path-Style routing", "endpoint", d.settings.Endpoint)
 		}
 	}), nil
 }
@@ -125,7 +125,8 @@ func (d *Datasource) QueryData(ctx context.Context, req *backend.QueryDataReques
 
 	s3Client, err := d.getS3Client(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create S3 client: %w", err)
+		log.DefaultLogger.Error("Failed to create S3 client", "error", err)
+		return nil, fmt.Errorf("failed to create S3 client, see Grafana server log for details")
 	}
 
 	// loop over queries and execute them individually.
@@ -163,7 +164,8 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 		executor := duckdb.NewExecutor(s3Client, d.settings.Bucket)
 		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)
 		if err != nil {
-			return backend.ErrDataResponse(backend.StatusUnknown, fmt.Sprintf("execute SQL: %v", err.Error()))
+			log.DefaultLogger.Error("SQL execution failed", "refID", query.RefID, "error", err)
+			return backend.ErrDataResponse(backend.StatusUnknown, "SQL query failed, see Grafana server log for details")
 		}
 		response.Frames = append(response.Frames, frames...)
 		return response
@@ -172,7 +174,8 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 	// Handle regular parquet queries (read entire file)
 	frames, err := parquet.ReadParquetFromS3(ctx, s3Client, d.settings.Bucket, qm.Path)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusUnknown, fmt.Sprintf("read parquet: %v", err.Error()))
+		log.DefaultLogger.Error("Failed to read parquet file", "refID", query.RefID, "error", err)
+		return backend.ErrDataResponse(backend.StatusUnknown, "Failed to read parquet file, see Grafana server log for details")
 	}
 
 	response.Frames = append(response.Frames, frames...)
@@ -187,7 +190,7 @@ func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Clien
 	// Determine the actual variable query type
 	vqt := strings.ToLower(strings.TrimSpace(qm.VariableQueryType))
 
-	log.DefaultLogger.Info("Variable query received", "rawVariableQueryType", qm.VariableQueryType, "normalizedVqt", vqt, "queryType", qm.QueryType)
+	log.DefaultLogger.Debug("Variable query received", "rawVariableQueryType", qm.VariableQueryType, "normalizedVqt", vqt, "queryType", qm.QueryType)
 
 	// Handle SQL queries
 	if vqt == "sql" || qm.SQLQuery != "" {
@@ -200,7 +203,8 @@ func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Clien
 		executor := duckdb.NewExecutor(s3Client, d.settings.Bucket)
 		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)
 		if err != nil {
-			return backend.ErrDataResponse(backend.StatusUnknown, fmt.Sprintf("execute SQL: %v", err))
+			log.DefaultLogger.Error("SQL variable query failed", "error", err)
+			return backend.ErrDataResponse(backend.StatusUnknown, "SQL query failed, see Grafana server log for details")
 		}
 		// For variable queries, extract first column values and deduplicate
 		if len(frames) > 0 && len(frames[0].Fields) > 0 {
@@ -232,17 +236,19 @@ func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Clien
 	if vqt == "prefixes" {
 		values, err := d.listPrefixes(ctx, s3Client, qm.Prefix)
 		if err != nil {
-			return backend.ErrDataResponse(backend.StatusUnknown, fmt.Sprintf("list prefixes: %v", err))
+			log.DefaultLogger.Error("Failed to list prefixes", "error", err)
+			return backend.ErrDataResponse(backend.StatusUnknown, "Failed to list prefixes, see Grafana server log for details")
 		}
 		response.Frames = append(response.Frames, createStringFrame("prefixes", values))
 		return response
 	}
 
 	// Default: list files (handles "files", "variable", "", or any other value)
-	log.DefaultLogger.Info("Listing files", "prefix", qm.Prefix, "filePattern", qm.FilePattern)
+	log.DefaultLogger.Debug("Listing files", "prefix", qm.Prefix, "filePattern", qm.FilePattern)
 	values, err := d.listFiles(ctx, s3Client, qm.Prefix, qm.FilePattern)
 	if err != nil {
-		return backend.ErrDataResponse(backend.StatusUnknown, fmt.Sprintf("list files: %v", err))
+		log.DefaultLogger.Error("Failed to list files", "error", err)
+		return backend.ErrDataResponse(backend.StatusUnknown, "Failed to list files, see Grafana server log for details")
 	}
 	response.Frames = append(response.Frames, createStringFrame("files", values))
 	return response
@@ -329,7 +335,7 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 		region = d.settings.DefaultRegion
 	}
 
-	log.DefaultLogger.Info("CheckHealth called", "region", region, "bucket", d.settings.Bucket, "endpoint", d.settings.Endpoint, "authType", d.settings.AuthType)
+	log.DefaultLogger.Debug("CheckHealth called", "region", region, "bucket", d.settings.Bucket, "endpoint", d.settings.Endpoint, "authType", d.settings.AuthType)
 
 	if region == "" {
 		return &backend.CheckHealthResult{
@@ -347,9 +353,10 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 	// Create S3 client for health check
 	s3Client, err := d.getS3Client(ctx)
 	if err != nil {
+		log.DefaultLogger.Error("CheckHealth failed to create S3 client", "error", err)
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
-			Message: fmt.Sprintf("Failed to create S3 client: %v", err),
+			Message: "Failed to create S3 client, see Grafana server log for details",
 		}, nil
 	}
 
@@ -362,7 +369,7 @@ func (d *Datasource) CheckHealth(ctx context.Context, req *backend.CheckHealthRe
 		log.DefaultLogger.Error("CheckHealth S3 connection failed", "error", err)
 		return &backend.CheckHealthResult{
 			Status:  backend.HealthStatusError,
-			Message: fmt.Sprintf("S3 connection failed: %v", err),
+			Message: "S3 connection failed, see Grafana server log for details",
 		}, nil
 	}
 
