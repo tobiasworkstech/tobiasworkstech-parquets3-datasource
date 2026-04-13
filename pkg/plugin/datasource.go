@@ -159,7 +159,7 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 		return d.handleVariableQuery(ctx, s3Client, qm)
 	}
 
-	// If SQL query is provided, use DuckDB
+	// If SQL query is provided, run it through the built-in in-memory SQL executor
 	if qm.SQLQuery != "" {
 		executor := duckdb.NewExecutor(s3Client, d.settings.Bucket)
 		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)

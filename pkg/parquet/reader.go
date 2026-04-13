@@ -85,6 +85,7 @@ func ReadParquetFromS3(ctx context.Context, s3Client *s3.Client, bucket, key str
 	if err != nil {
 		return nil, fmt.Errorf("new parquet reader: %w", err)
 	}
+	defer pf.Close()
 
 	arrowReader, err := pqarrow.NewFileReader(pf, pqarrow.ArrowReadProperties{}, nil)
 	if err != nil {

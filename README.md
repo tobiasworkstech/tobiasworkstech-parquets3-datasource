@@ -38,10 +38,12 @@ The Parquet-S3-Datasource plugin enables you to connect Grafana to your data lak
 - **Path-Style Routing**: Automatic configuration for S3-compatible storage that requires path-style URLs
 
 ### SQL Query Support (v1.1.0+)
-- **Full SQL Syntax**: SELECT, WHERE, GROUP BY, ORDER BY, LIMIT powered by DuckDB
+- **SQL Subset**: A built-in, in-memory SQL engine supporting SELECT, WHERE, GROUP BY, ORDER BY, and LIMIT
 - **Aggregation Functions**: COUNT, SUM, AVG, MIN, MAX
-- **Complex Filtering**: Multiple conditions with AND/OR operators
+- **Filtering**: `=`, `!=`, `>`, `<`, `>=`, `<=`, `LIKE`, `IN`, `IS NULL`, `IS NOT NULL` with AND/OR composition
 - **Column Aliasing**: Rename columns in query results
+
+> Note: The SQL engine is a custom, lightweight in-memory executor built into the plugin — it is **not** DuckDB. Only the subset of SQL listed above is supported. DuckDB-specific functions, window functions, CTEs, and JOINs are not available.
 
 ### Visual Query Builder
 - **PostgreSQL-Style Interface**: Familiar query building experience
@@ -212,7 +214,7 @@ The plugin includes sample dashboards demonstrating various use cases:
 
 - Verify column names match exactly (case-sensitive)
 - Use double quotes for column names with special characters: `"column.name"`
-- Check SQL syntax - the plugin uses DuckDB SQL dialect
+- The plugin ships with a custom in-memory SQL engine that supports a **subset** of SQL: `SELECT`, `WHERE`, `GROUP BY`, `ORDER BY`, `LIMIT`, and the aggregates `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`. It is **not** DuckDB — DuckDB-specific syntax, JOINs, CTEs, window functions, and scalar functions are not supported
 
 ### Invalid Plugin Signature (Development)
 

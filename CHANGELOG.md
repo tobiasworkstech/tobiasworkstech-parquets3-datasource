@@ -21,10 +21,10 @@ All notable changes to this project will be documented in this file.
 
 ### Features
 
-- **SQL Query Support**: Full SQL query capabilities powered by DuckDB
+- **SQL Query Support**: Built-in, in-memory SQL engine (a custom lightweight executor, not DuckDB)
   - SELECT, WHERE, GROUP BY, ORDER BY, LIMIT clauses
   - Aggregation functions (COUNT, SUM, AVG, MIN, MAX)
-  - Complex filtering and sorting
+  - Filtering and sorting
 - **Visual Query Builder**: PostgreSQL-style query builder interface
   - Column selection with aggregations
   - Filter toggle with condition builder
