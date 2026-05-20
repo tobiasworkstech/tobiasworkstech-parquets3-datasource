@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.15] - 2026-05-20
+
+### Build
+
+- **Drop 32-bit `linux/arm` binary**. Apache Thrift v0.23.0 (required to fix CVE-2026-41602) uses `math.MaxUint32` as an untyped `int` constant in `framed_transport.go`, which overflows on 32-bit architectures. 32-bit ARM is rarely used to run Grafana (RPi 4+ is arm64), so the artifact is dropped rather than staying on the vulnerable Thrift version. A custom `BuildAll` target in `Magefile.go` builds the remaining five platforms (linux amd64/arm64, darwin amd64/arm64, windows amd64).
+- Refresh `grafana-plugin-sdk-go` to v0.292.0 to clear the validator's "SDK older than 2 months" warning.
+
 ## [1.2.13] - 2026-05-20
 
 ### Bug Fixes
