@@ -1,4 +1,4 @@
-package duckdb
+package sqlexec
 
 import (
 	"context"
@@ -29,6 +29,21 @@ func NewExecutor(s3Client *s3.Client, bucket string) *Executor {
 
 // ExecuteSQL runs a SQL query on a parquet file from S3
 func (e *Executor) ExecuteSQL(ctx context.Context, key, sqlQuery string) ([]*data.Frame, error) {
+	// Schema discovery (e.g. `SELECT * FROM parquet LIMIT 0` from the frontend)
+	// only needs column metadata, so read the Parquet footer instead of loading
+	// the entire file.
+	if isSchemaOnlyQuery(sqlQuery) {
+		frame, err := parquet.ReadParquetSchemaFromS3(ctx, e.s3Client, e.bucket, key)
+		if err != nil {
+			return nil, fmt.Errorf("read parquet schema: %w", err)
+		}
+		if frame.Meta == nil {
+			frame.Meta = &data.FrameMeta{}
+		}
+		frame.Meta.ExecutedQueryString = sqlQuery
+		return []*data.Frame{frame}, nil
+	}
+
 	// Read the parquet file using the existing reader
 	frames, err := parquet.ReadParquetFromS3(ctx, e.s3Client, e.bucket, key)
 	if err != nil {
@@ -54,6 +69,33 @@ func (e *Executor) ExecuteSQL(ctx context.Context, key, sqlQuery string) ([]*dat
 	result.Meta.ExecutedQueryString = sqlQuery
 
 	return []*data.Frame{result}, nil
+}
+
+// limitZeroRE matches LIMIT 0 (with optional trailing whitespace/semicolon) at
+// the end of a SQL query.
+var limitZeroRE = regexp.MustCompile(`(?i)\bLIMIT\s+0\s*;?\s*$`)
+
+// isSchemaOnlyQuery reports whether a query is a `SELECT * ... LIMIT 0` probe
+// that the executor can answer from the Parquet footer alone, without
+// downloading row data. WHERE/GROUP BY/ORDER BY clauses are tolerated because
+// LIMIT 0 always produces an empty result regardless of the filter, but
+// column projection (non-`*` SELECT lists) and aggregates force the full read
+// path so that the returned schema still matches the projected output.
+func isSchemaOnlyQuery(sqlQuery string) bool {
+	q := strings.TrimSpace(sqlQuery)
+	if !limitZeroRE.MatchString(q) {
+		return false
+	}
+	upper := strings.ToUpper(q)
+	if !strings.HasPrefix(upper, "SELECT") {
+		return false
+	}
+	fromIdx := strings.Index(upper, "FROM")
+	if fromIdx == -1 {
+		return false
+	}
+	cols := strings.TrimSpace(q[len("SELECT"):fromIdx])
+	return cols == "*"
 }
 
 // executeSQLOnFrame parses SQL and applies it to a data frame

@@ -16,7 +16,7 @@ import (
 	"github.com/grafana/grafana-plugin-sdk-go/backend/instancemgmt"
 	"github.com/grafana/grafana-plugin-sdk-go/backend/log"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
-	"github.com/tobiasworkstech/parquets3-datasource/pkg/duckdb"
+	"github.com/tobiasworkstech/parquets3-datasource/pkg/sqlexec"
 	"github.com/tobiasworkstech/parquets3-datasource/pkg/models"
 	"github.com/tobiasworkstech/parquets3-datasource/pkg/parquet"
 )
@@ -161,7 +161,7 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 
 	// If SQL query is provided, run it through the built-in in-memory SQL executor
 	if qm.SQLQuery != "" {
-		executor := duckdb.NewExecutor(s3Client, d.settings.Bucket)
+		executor := sqlexec.NewExecutor(s3Client, d.settings.Bucket)
 		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)
 		if err != nil {
 			log.DefaultLogger.Error("SQL execution failed", "refID", query.RefID, "error", err)
@@ -200,7 +200,7 @@ func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Clien
 		if qm.Path == "" {
 			return backend.ErrDataResponse(backend.StatusBadRequest, "Path is required for sql variable type")
 		}
-		executor := duckdb.NewExecutor(s3Client, d.settings.Bucket)
+		executor := sqlexec.NewExecutor(s3Client, d.settings.Bucket)
 		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)
 		if err != nil {
 			log.DefaultLogger.Error("SQL variable query failed", "error", err)
@@ -254,7 +254,9 @@ func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Clien
 	return response
 }
 
-// listPrefixes lists prefixes (folders) in the S3 bucket
+// listPrefixes lists prefixes (folders) in the S3 bucket. Pages through
+// ListObjectsV2 results so buckets with more than 1000 entries are not
+// silently truncated.
 func (d *Datasource) listPrefixes(ctx context.Context, s3Client *s3.Client, prefix string) ([]string, error) {
 	input := &s3.ListObjectsV2Input{
 		Bucket:    aws.String(d.settings.Bucket),
@@ -264,28 +266,33 @@ func (d *Datasource) listPrefixes(ctx context.Context, s3Client *s3.Client, pref
 		input.Prefix = aws.String(prefix)
 	}
 
-	result, err := s3Client.ListObjectsV2(ctx, input)
-	if err != nil {
-		return nil, err
-	}
+	paginator := s3.NewListObjectsV2Paginator(s3Client, input)
 
 	var prefixes []string
-	for _, cp := range result.CommonPrefixes {
-		if cp.Prefix != nil {
-			// Remove trailing slash and get the folder name
-			p := strings.TrimSuffix(*cp.Prefix, "/")
-			if prefix != "" {
-				// Remove the parent prefix to get just the folder name
-				p = strings.TrimPrefix(p, prefix)
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, cp := range page.CommonPrefixes {
+			if cp.Prefix != nil {
+				// Remove trailing slash and get the folder name
+				p := strings.TrimSuffix(*cp.Prefix, "/")
+				if prefix != "" {
+					// Remove the parent prefix to get just the folder name
+					p = strings.TrimPrefix(p, prefix)
+				}
+				prefixes = append(prefixes, p)
 			}
-			prefixes = append(prefixes, p)
 		}
 	}
 
 	return prefixes, nil
 }
 
-// listFiles lists parquet files in the S3 bucket matching the pattern
+// listFiles lists parquet files in the S3 bucket matching the pattern. Pages
+// through ListObjectsV2 results so buckets with more than 1000 entries are not
+// silently truncated.
 func (d *Datasource) listFiles(ctx context.Context, s3Client *s3.Client, prefix, pattern string) ([]string, error) {
 	input := &s3.ListObjectsV2Input{
 		Bucket: aws.String(d.settings.Bucket),
@@ -294,26 +301,29 @@ func (d *Datasource) listFiles(ctx context.Context, s3Client *s3.Client, prefix,
 		input.Prefix = aws.String(prefix)
 	}
 
-	result, err := s3Client.ListObjectsV2(ctx, input)
-	if err != nil {
-		return nil, err
-	}
-
 	// Default pattern to *.parquet if not specified
 	if pattern == "" {
 		pattern = "*.parquet"
 	}
 
+	paginator := s3.NewListObjectsV2Paginator(s3Client, input)
+
 	var files []string
-	for _, obj := range result.Contents {
-		if obj.Key != nil {
-			key := *obj.Key
-			// Get just the filename
-			filename := filepath.Base(key)
-			// Match against pattern
-			matched, _ := filepath.Match(pattern, filename)
-			if matched {
-				files = append(files, key)
+	for paginator.HasMorePages() {
+		page, err := paginator.NextPage(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, obj := range page.Contents {
+			if obj.Key != nil {
+				key := *obj.Key
+				// Get just the filename
+				filename := filepath.Base(key)
+				// Match against pattern
+				matched, _ := filepath.Match(pattern, filename)
+				if matched {
+					files = append(files, key)
+				}
 			}
 		}
 	}

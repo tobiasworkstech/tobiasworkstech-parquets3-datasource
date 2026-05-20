@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.13] - 2026-05-20
+
+### Bug Fixes
+
+- **S3 list pagination**: `listPrefixes` and `listFiles` now page through `ListObjectsV2` results so buckets with more than 1000 objects are not silently truncated.
+
+### Improvements
+
+- **Schema discovery without full read**: `SELECT * FROM parquet LIMIT 0` (used by the frontend to fetch column names) now reads only the Parquet footer via `arrowReader.Schema()` instead of downloading the entire file from S3.
+- **Renamed `pkg/duckdb` → `pkg/sqlexec`**: the package never used DuckDB; the new name reflects what it actually is — a small in-memory SQL executor.
+- **Plugin README**: replaced the `@grafana/create-plugin` template `src/README.md` with proper, screenshot-rich documentation that is bundled into the published plugin.
+
 ## [1.2.0] - 2026-02-14
 
 ### Bug Fixes

@@ -116,6 +116,76 @@ func ReadParquetFromS3(ctx context.Context, s3Client *s3.Client, bucket, key str
 	return []*data.Frame{frame}, nil
 }
 
+// ReadParquetSchemaFromS3 reads only the Parquet footer to extract the schema
+// and returns an empty data frame whose fields match the file's columns. This
+// avoids loading row data from S3 for schema-discovery requests (e.g. the
+// frontend's SELECT * FROM parquet LIMIT 0 probe).
+func ReadParquetSchemaFromS3(ctx context.Context, s3Client *s3.Client, bucket, key string) (*data.Frame, error) {
+	head, err := s3Client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("head object: %w", err)
+	}
+
+	if head.ContentLength == nil {
+		return nil, fmt.Errorf("missing content length for s3://%s/%s", bucket, key)
+	}
+
+	readerAt := &S3ReaderAt{
+		Ctx:      ctx,
+		S3Client: s3Client,
+		Bucket:   bucket,
+		Key:      key,
+		Size:     *head.ContentLength,
+	}
+
+	pf, err := file.NewParquetReader(readerAt)
+	if err != nil {
+		return nil, fmt.Errorf("new parquet reader: %w", err)
+	}
+	defer pf.Close()
+
+	arrowReader, err := pqarrow.NewFileReader(pf, pqarrow.ArrowReadProperties{}, nil)
+	if err != nil {
+		return nil, fmt.Errorf("new arrow reader: %w", err)
+	}
+
+	schema, err := arrowReader.Schema()
+	if err != nil {
+		return nil, fmt.Errorf("read schema: %w", err)
+	}
+
+	frame := data.NewFrame(key)
+	for _, f := range schema.Fields() {
+		frame.Fields = append(frame.Fields, emptyFieldForArrowType(f.Name, f.Type))
+	}
+	return frame, nil
+}
+
+// emptyFieldForArrowType returns a zero-length data.Field whose element type
+// matches what convertArrowColumnToField would produce for the same Arrow
+// type. Keep the two functions in sync.
+func emptyFieldForArrowType(name string, fieldType arrow.DataType) *data.Field {
+	switch fieldType.ID() {
+	case arrow.TIMESTAMP:
+		return data.NewField(name, nil, []*time.Time{})
+	case arrow.FLOAT64, arrow.FLOAT32:
+		return data.NewField(name, nil, []*float64{})
+	case arrow.INT64, arrow.INT32, arrow.INT16, arrow.INT8:
+		return data.NewField(name, nil, []*int64{})
+	case arrow.UINT64, arrow.UINT32:
+		return data.NewField(name, nil, []*uint64{})
+	case arrow.BOOL:
+		return data.NewField(name, nil, []*bool{})
+	case arrow.STRING, arrow.LARGE_STRING:
+		return data.NewField(name, nil, []*string{})
+	default:
+		return data.NewField(name, nil, []string{})
+	}
+}
+
 // convertArrowColumnToField converts an Arrow column to a Grafana data field with proper typing
 func convertArrowColumnToField(name string, col *arrow.Column, fieldType arrow.DataType, numRows int) *data.Field {
 	// Handle chunked arrays by combining all chunks
