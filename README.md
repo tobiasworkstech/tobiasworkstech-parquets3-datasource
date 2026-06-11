@@ -4,6 +4,12 @@
 
 Query and visualize Apache Parquet files stored in Amazon S3 or S3-compatible storage directly in Grafana with full SQL support.
 
+> ✅ **Approved by Grafana** — this plugin is officially published in the [Grafana plugin catalog](https://grafana.com/grafana/plugins/tobiasworkstech-parquets3-datasource/). You can install it directly from the catalog or via the Grafana CLI:
+>
+> ```bash
+> grafana cli plugins install tobiasworkstech-parquets3-datasource
+> ```
+
 ## Overview
 
 The Parquet-S3-Datasource plugin enables you to connect Grafana to your data lake stored in Parquet format on Amazon S3, MinIO, Wasabi, DigitalOcean Spaces, or any S3-compatible storage. Leverage the efficiency of columnar Parquet files for fast analytics and visualization without needing to load data into a traditional database.
