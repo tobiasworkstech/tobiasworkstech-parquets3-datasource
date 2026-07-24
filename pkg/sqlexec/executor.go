@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -27,13 +28,21 @@ func NewExecutor(s3Client *s3.Client, bucket string) *Executor {
 	}
 }
 
-// ExecuteSQL runs a SQL query on a parquet file from S3
-func (e *Executor) ExecuteSQL(ctx context.Context, key, sqlQuery string) ([]*data.Frame, error) {
+// ExecuteSQL runs a SQL query across one or more parquet files from S3. When
+// multiple keys are provided, the files are concatenated (they must share an
+// identical schema) before the query is applied, allowing a single query to
+// search across several files at once.
+func (e *Executor) ExecuteSQL(ctx context.Context, keys []string, sqlQuery string) ([]*data.Frame, error) {
+	if len(keys) == 0 {
+		return nil, fmt.Errorf("no parquet files specified")
+	}
+
 	// Schema discovery (e.g. `SELECT * FROM parquet LIMIT 0` from the frontend)
 	// only needs column metadata, so read the Parquet footer instead of loading
-	// the entire file.
+	// the entire file. All files are expected to share the same schema, so the
+	// first key is representative.
 	if isSchemaOnlyQuery(sqlQuery) {
-		frame, err := parquet.ReadParquetSchemaFromS3(ctx, e.s3Client, e.bucket, key)
+		frame, err := parquet.ReadParquetSchemaFromS3(ctx, e.s3Client, e.bucket, keys[0])
 		if err != nil {
 			return nil, fmt.Errorf("read parquet schema: %w", err)
 		}
@@ -44,8 +53,9 @@ func (e *Executor) ExecuteSQL(ctx context.Context, key, sqlQuery string) ([]*dat
 		return []*data.Frame{frame}, nil
 	}
 
-	// Read the parquet file using the existing reader
-	frames, err := parquet.ReadParquetFromS3(ctx, e.s3Client, e.bucket, key)
+	// Read (and, if there is more than one file, concatenate) the parquet
+	// files using the existing reader.
+	frames, err := parquet.ReadParquetFilesFromS3(ctx, e.s3Client, e.bucket, keys)
 	if err != nil {
 		return nil, fmt.Errorf("read parquet file: %w", err)
 	}
@@ -223,7 +233,8 @@ func executeSimpleSQL(frame *data.Frame, sqlQuery string) (*data.Frame, error) {
 // aggregationColumn represents a parsed aggregation expression
 type aggregationColumn struct {
 	function string // COUNT, AVG, SUM, MIN, MAX, or empty for regular column
-	column   string // column name or * for COUNT(*)
+	column   string // column name, or * for COUNT(*)
+	distinct bool   // true for COUNT(DISTINCT column)
 	alias    string // AS alias name
 }
 
@@ -291,10 +302,34 @@ func parseAggregationColumns(columnsStr string) []aggregationColumn {
 		}
 
 		col.column = strings.Trim(col.column, `"'`)
+
+		// COUNT(DISTINCT column) - strip the DISTINCT keyword and remember it
+		// so the executor counts unique values instead of all rows.
+		if col.function == "COUNT" {
+			if rest, ok := stripDistinctPrefix(col.column); ok {
+				col.distinct = true
+				col.column = strings.Trim(rest, `"'`)
+			}
+		}
+
 		result = append(result, col)
 	}
 
 	return result
+}
+
+// stripDistinctPrefix reports whether s begins with the DISTINCT keyword
+// (case-insensitive) and, if so, returns the remainder with it removed.
+func stripDistinctPrefix(s string) (string, bool) {
+	trimmed := strings.TrimSpace(s)
+	if len(trimmed) < len("DISTINCT") || !strings.EqualFold(trimmed[:len("DISTINCT")], "DISTINCT") {
+		return s, false
+	}
+	rest := trimmed[len("DISTINCT"):]
+	if rest != "" && !strings.HasPrefix(rest, " ") && !strings.HasPrefix(rest, "(") {
+		return s, false
+	}
+	return strings.TrimSpace(rest), true
 }
 
 // splitByComma splits a string by comma, respecting parentheses
@@ -352,7 +387,7 @@ func aggregateAll(frame *data.Frame, aggCols []aggregationColumn, numRows int) (
 
 		switch col.function {
 		case "COUNT":
-			value = int64(numRows)
+			value = calculateCount(frame, col.column, col.distinct, numRows)
 			newFrame.Fields = append(newFrame.Fields, data.NewField(alias, nil, []int64{value.(int64)}))
 		case "AVG":
 			avg := calculateAvg(frame, col.column, numRows)
@@ -419,7 +454,7 @@ func aggregateByGroup(frame *data.Frame, aggCols []aggregationColumn, groupByCol
 		case "COUNT":
 			values := make([]int64, len(groupOrder))
 			for i, key := range groupOrder {
-				values[i] = int64(len(groups[key]))
+				values[i] = calculateCountForRows(frame, col.column, col.distinct, groups[key])
 			}
 			newFrame.Fields = append(newFrame.Fields, data.NewField(alias, nil, values))
 		case "AVG":
@@ -467,6 +502,51 @@ func aggregateByGroup(frame *data.Frame, aggCols []aggregationColumn, groupByCol
 }
 
 // Helper functions for aggregation calculations
+// calculateCount implements COUNT semantics over all rows:
+//   - column is "*" or empty (COUNT(*)): total row count, including nulls
+//   - distinct is true (COUNT(DISTINCT column)): number of unique non-null values
+//   - otherwise (COUNT(column)): number of non-null values
+func calculateCount(frame *data.Frame, colName string, distinct bool, numRows int) int64 {
+	rows := make([]int, numRows)
+	for i := 0; i < numRows; i++ {
+		rows[i] = i
+	}
+	return calculateCountForRows(frame, colName, distinct, rows)
+}
+
+func calculateCountForRows(frame *data.Frame, colName string, distinct bool, rows []int) int64 {
+	if colName == "" || colName == "*" {
+		return int64(len(rows))
+	}
+	field := findField(frame, colName)
+	if field == nil {
+		// Unknown column - fall back to counting all rows rather than
+		// silently returning 0, since the column may be a valid expression
+		// the parser didn't recognize.
+		return int64(len(rows))
+	}
+
+	if distinct {
+		seen := make(map[string]struct{}, len(rows))
+		for _, i := range rows {
+			val := field.At(i)
+			if val == nil {
+				continue
+			}
+			seen[formatValue(val)] = struct{}{}
+		}
+		return int64(len(seen))
+	}
+
+	var count int64
+	for _, i := range rows {
+		if field.At(i) != nil {
+			count++
+		}
+	}
+	return count
+}
+
 func calculateAvg(frame *data.Frame, colName string, numRows int) float64 {
 	rows := make([]int, numRows)
 	for i := 0; i < numRows; i++ {
@@ -474,7 +554,6 @@ func calculateAvg(frame *data.Frame, colName string, numRows int) float64 {
 	}
 	return calculateAvgForRows(frame, colName, rows)
 }
-
 func calculateAvgForRows(frame *data.Frame, colName string, rows []int) float64 {
 	field := findField(frame, colName)
 	if field == nil || len(rows) == 0 {
@@ -877,8 +956,52 @@ func compareEqual(fieldValue any, compareValue string) bool {
 		}
 		cv, _ := strconv.ParseFloat(compareValue, 64)
 		return *v == cv
+	case time.Time:
+		cv, ok := parseTimeValue(compareValue)
+		return ok && v.Equal(cv)
+	case *time.Time:
+		if v == nil {
+			return false
+		}
+		cv, ok := parseTimeValue(compareValue)
+		return ok && v.Equal(cv)
 	}
 	return fmt.Sprintf("%v", fieldValue) == compareValue
+}
+
+// parseTimeValue attempts to interpret a WHERE-clause comparison value as a
+// point in time, so comparisons against TIMESTAMP columns (e.g. event_time)
+// work correctly. Supports the epoch millisecond/second integers that
+// Grafana's built-in $__from/$__to time-range variables interpolate to, as
+// well as common textual timestamp/date formats a user might type literally.
+func parseTimeValue(s string) (time.Time, bool) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return time.Time{}, false
+	}
+	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
+		switch {
+		case n > 1e15:
+			return time.UnixMicro(n).UTC(), true
+		case n > 1e12:
+			return time.UnixMilli(n).UTC(), true
+		case n > 1e9:
+			return time.Unix(n, 0).UTC(), true
+		}
+	}
+	layouts := []string{
+		time.RFC3339Nano,
+		time.RFC3339,
+		"2006-01-02 15:04:05",
+		"2006-01-02T15:04:05",
+		"2006-01-02",
+	}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, s); err == nil {
+			return t.UTC(), true
+		}
+	}
+	return time.Time{}, false
 }
 
 // compareGreater compares if field value is greater than compare value
@@ -909,6 +1032,15 @@ func compareGreater(fieldValue any, compareValue string) bool {
 			return false
 		}
 		return *v > compareValue
+	case time.Time:
+		cv, ok := parseTimeValue(compareValue)
+		return ok && v.After(cv)
+	case *time.Time:
+		if v == nil {
+			return false
+		}
+		cv, ok := parseTimeValue(compareValue)
+		return ok && v.After(cv)
 	}
 	return false
 }
@@ -941,6 +1073,15 @@ func compareLess(fieldValue any, compareValue string) bool {
 			return false
 		}
 		return *v < compareValue
+	case time.Time:
+		cv, ok := parseTimeValue(compareValue)
+		return ok && v.Before(cv)
+	case *time.Time:
+		if v == nil {
+			return false
+		}
+		cv, ok := parseTimeValue(compareValue)
+		return ok && v.Before(cv)
 	}
 	return false
 }

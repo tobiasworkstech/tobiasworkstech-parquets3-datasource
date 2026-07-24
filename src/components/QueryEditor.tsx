@@ -3,6 +3,7 @@ import {
   InlineField,
   Input,
   Select,
+  MultiSelect,
   Button,
   Icon,
   InlineSwitch,
@@ -170,6 +171,12 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
   const [limit, setLimit] = useState<string>(query.queryLimit || '');
   const [loading, setLoading] = useState(false);
 
+  // Date-range file pattern mode: expands `pathPattern`'s "{date}" placeholder
+  // server-side into one file per day covered by the dashboard time-picker.
+  const [useDatePattern, setUseDatePattern] = useState<boolean>(!!query.pathPattern);
+  const [pathPattern, setPathPattern] = useState<string>(query.pathPattern || '');
+  const [dateFormat, setDateFormat] = useState<string>(query.dateFormat || '');
+
   // Toggle states
   const [filterEnabled, setFilterEnabled] = useState(query.filterEnabled ?? false);
   const [groupEnabled, setGroupEnabled] = useState(query.groupEnabled ?? false);
@@ -225,17 +232,23 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     }));
   }, [allFiles, fileFilter]);
 
-  // Load columns when file changes
+  // Load columns when the selected file(s) change. Schemas are assumed to be
+  // identical across all selected files, so the first one is representative.
+  // In date-pattern mode, preview columns using today's date substituted into
+  // the pattern (the actual query will expand to one file per day at run time).
+  const schemaPath = query.pathPattern
+    ? query.pathPattern.replace('{date}', new Date().toISOString().slice(0, 10))
+    : query.paths?.[0] || query.path;
   useEffect(() => {
     const loadColumns = async () => {
-      if (!query.path) {
+      if (!schemaPath) {
         setColumns([]);
         return;
       }
 
       try {
         setLoading(true);
-        const result = await datasource.getSchema(query.path);
+        const result = await datasource.getSchema(schemaPath);
         const columnOptions = result.map((col: { name: string; type: string }) => ({
           label: `${col.name} (${col.type})`,
           value: col.name,
@@ -250,11 +263,11 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     };
 
     loadColumns();
-  }, [query.path, datasource]);
+  }, [schemaPath, datasource]);
 
   // Build SQL from builder options
   const buildSQL = useCallback(() => {
-    if (!query.path) {
+    if (!query.path && !query.paths?.length && !query.pathPattern) {
       return '';
     }
 
@@ -321,7 +334,7 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     }
 
     return sql;
-  }, [columnSelections, whereConditions, orderByItems, groupByColumns, limit, query.path, filterEnabled, groupEnabled, orderEnabled]);
+  }, [columnSelections, whereConditions, orderByItems, groupByColumns, limit, query.path, query.paths, query.pathPattern, filterEnabled, groupEnabled, orderEnabled]);
 
   // Sync SQL and full builder state to query when builder options change.
   // Skips the first render to avoid overwriting a persisted query with default local state.
@@ -351,9 +364,14 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorMode, buildSQL, format, columnSelections, whereConditions, orderByItems, groupByColumns, limit, filterEnabled, groupEnabled, orderEnabled]);
 
-  const onPathChange = (value: SelectableValue<string>) => {
-    onChange({ ...query, path: value?.value || '' });
-    // Reset builder state when file changes
+  // Handles selection changes from the multi-file picker. `paths` holds every
+  // selected file; `path` is kept in sync (comma-joined) for backward
+  // compatibility with existing dashboards/template variables that read a
+  // single path.
+  const onPathsChange = (values: Array<SelectableValue<string>> | null) => {
+    const paths = (values || []).map((v) => v.value!).filter(Boolean);
+    onChange({ ...query, paths, path: paths.join(',') });
+    // Reset builder state when the file selection changes
     setColumnSelections([{ column: '', alias: '', aggregation: '' }]);
     setWhereConditions([]);
     setOrderByItems([]);
@@ -363,6 +381,30 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
 
   const onSqlQueryChange = (value: string) => {
     onChange({ ...query, sqlQuery: value });
+  };
+
+  // Toggles between explicit file selection and date-range pattern mode.
+  // Switching modes clears the fields owned by the other mode so a stale
+  // `pathPattern` doesn't silently override a freshly picked `path`/`paths`
+  // (the backend prioritizes `pathPattern` when present).
+  const onDatePatternToggle = () => {
+    const next = !useDatePattern;
+    setUseDatePattern(next);
+    if (next) {
+      onChange({ ...query, pathPattern, path: '', paths: [] });
+    } else {
+      onChange({ ...query, pathPattern: undefined, dateFormat: undefined });
+    }
+  };
+
+  const onPathPatternChange = (value: string) => {
+    setPathPattern(value);
+    onChange({ ...query, pathPattern: value });
+  };
+
+  const onDateFormatChange = (value: string) => {
+    setDateFormat(value);
+    onChange({ ...query, dateFormat: value || undefined });
   };
 
   // Refresh files list
@@ -425,45 +467,68 @@ export function QueryEditor({ query, onChange, onRunQuery, datasource }: Props) 
     setOrderByItems(orderByItems.filter((_, i) => i !== index));
   };
 
-  const { path, sqlQuery } = query;
+  const { sqlQuery } = query;
+  const selectedPaths = query.paths?.length ? query.paths : query.path ? [query.path] : [];
 
-  // File selector component (reused in both modes)
+  // File selector component (reused in both modes). Supports selecting
+  // multiple parquet files to search across at once.
   const FileSelector = () => (
     <div className={styles.fileSelector}>
       <span className={styles.label}>Table</span>
-      <Select
-        options={filteredFileOptions}
-        value={path ? { label: path, value: path } : null}
-        onChange={onPathChange}
-        placeholder="Select parquet file..."
-        isLoading={filesLoading}
-        isClearable
-        allowCustomValue
-        onCreateOption={(v) => onChange({ ...query, path: v })}
-        width={30}
-        noOptionsMessage="No files found"
-      />
-      <Input
-        value={fileFilter}
-        onChange={(e) => setFileFilter(e.currentTarget.value)}
-        placeholder="Filter (regex)"
-        width={15}
-        className={styles.filterInput}
-      />
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={refreshFiles}
-        disabled={filesLoading}
-        title="Refresh file list"
-      >
-        <Icon name="sync" />
-      </Button>
-      {allFiles.length > 0 && (
-        <span className={styles.fileCount}>
-          {filteredFileOptions.length} of {allFiles.length} files
-        </span>
+      {useDatePattern ? (
+        <>
+          <Input
+            value={pathPattern}
+            onChange={(e) => onPathPatternChange(e.currentTarget.value)}
+            placeholder="e.g. metrics-curated/dt={date}/data.parquet"
+            width={45}
+          />
+          <Input
+            value={dateFormat}
+            onChange={(e) => onDateFormatChange(e.currentTarget.value)}
+            placeholder="Date format (default 2006-01-02)"
+            width={28}
+          />
+        </>
+      ) : (
+        <>
+          <MultiSelect
+            options={filteredFileOptions}
+            value={selectedPaths.map((p) => ({ label: p, value: p }))}
+            onChange={onPathsChange}
+            placeholder="Select one or more parquet files..."
+            isLoading={filesLoading}
+            isClearable
+            allowCustomValue
+            onCreateOption={(v) => onPathsChange([...selectedPaths.map((p) => ({ label: p, value: p })), { label: v, value: v }])}
+            width={40}
+            noOptionsMessage="No files found"
+          />
+          <Input
+            value={fileFilter}
+            onChange={(e) => setFileFilter(e.currentTarget.value)}
+            placeholder="Filter (regex)"
+            width={15}
+            className={styles.filterInput}
+          />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={refreshFiles}
+            disabled={filesLoading}
+            title="Refresh file list"
+          >
+            <Icon name="sync" />
+          </Button>
+          {allFiles.length > 0 && (
+            <span className={styles.fileCount}>
+              {filteredFileOptions.length} of {allFiles.length} files
+            </span>
+          )}
+        </>
       )}
+      <span className={styles.toggleLabel}>Match by time range</span>
+      <InlineSwitch value={useDatePattern} onChange={onDatePatternToggle} transparent title="Auto-select daily files using the dashboard time range" />
     </div>
   );
 

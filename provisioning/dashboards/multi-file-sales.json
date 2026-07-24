@@ -1,0 +1,558 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Demonstrates searching multiple Parquet files at once: sales_north.parquet, sales_south.parquet, sales_east.parquet and sales_west.parquet share an identical schema and are queried together via the datasource's multi-file support (targets use \"paths\").",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT SUM(revenue) AS total_revenue FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Revenue (All Regions)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT COUNT(*) AS total_orders FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Orders (All Regions)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT COUNT(DISTINCT region) AS regions_covered FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Regions Covered",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "currencyUSD"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT ROUND(AVG(revenue), 2) AS avg_order_value FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Order Value",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT * FROM parquet ORDER BY order_date DESC LIMIT 50",
+          "refId": "A"
+        }
+      ],
+      "title": "All Regional Sales, Combined (4 Files Searched at Once)",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT region, COUNT(*) AS orders, SUM(revenue) AS total_revenue FROM parquet GROUP BY region ORDER BY total_revenue DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Revenue by Region",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT category, COUNT(*) AS orders, SUM(revenue) AS total_revenue FROM parquet GROUP BY category ORDER BY total_revenue DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Revenue by Category",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 8,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "path": "sales_north.parquet,sales_south.parquet,sales_east.parquet,sales_west.parquet",
+          "paths": ["sales_north.parquet", "sales_south.parquet", "sales_east.parquet", "sales_west.parquet"],
+          "sqlQuery": "SELECT product, COUNT(*) AS orders, SUM(quantity) AS units_sold, SUM(revenue) AS total_revenue FROM parquet GROUP BY product ORDER BY total_revenue DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Top Products by Revenue (Across All Regions)",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["parquet", "s3", "multi-file", "sales"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "tobiasworkstech-parquets3-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Multi-File Sales Search (Regional)",
+  "uid": "multi-file-sales",
+  "version": 1,
+  "weekStart": ""
+}

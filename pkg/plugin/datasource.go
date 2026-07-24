@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -152,17 +153,25 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 		return backend.ErrDataResponse(backend.StatusBadRequest, fmt.Sprintf("json unmarshal: %v", err.Error()))
 	}
 
-	log.DefaultLogger.Debug("Query received", "refID", query.RefID, "queryType", qm.QueryType, "variableQueryType", qm.VariableQueryType, "path", qm.Path, "filePattern", qm.FilePattern)
+	log.DefaultLogger.Debug("Query received", "refID", query.RefID, "queryType", qm.QueryType, "variableQueryType", qm.VariableQueryType, "path", qm.Path, "paths", qm.Paths, "filePattern", qm.FilePattern)
 
 	// Handle variable queries - check queryType, variableQueryType, or empty path with refId="variable"
-	if qm.QueryType == "variable" || qm.VariableQueryType != "" || (qm.Path == "" && query.RefID == "variable") {
-		return d.handleVariableQuery(ctx, s3Client, qm)
+	if qm.QueryType == "variable" || qm.VariableQueryType != "" || (qm.Path == "" && len(qm.Paths) == 0 && qm.PathPattern == "" && query.RefID == "variable") {
+		return d.handleVariableQuery(ctx, s3Client, qm, query.TimeRange)
+	}
+
+	keys, err := resolveKeys(qm, query.TimeRange)
+	if err != nil {
+		return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
+	}
+	if len(keys) == 0 {
+		return backend.ErrDataResponse(backend.StatusBadRequest, "path is required")
 	}
 
 	// If SQL query is provided, run it through the built-in in-memory SQL executor
 	if qm.SQLQuery != "" {
 		executor := sqlexec.NewExecutor(s3Client, d.settings.Bucket)
-		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)
+		frames, err := executor.ExecuteSQL(ctx, keys, qm.SQLQuery)
 		if err != nil {
 			log.DefaultLogger.Error("SQL execution failed", "refID", query.RefID, "error", err)
 			return backend.ErrDataResponse(backend.StatusUnknown, "SQL query failed, see Grafana server log for details")
@@ -171,8 +180,8 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 		return response
 	}
 
-	// Handle regular parquet queries (read entire file)
-	frames, err := parquet.ReadParquetFromS3(ctx, s3Client, d.settings.Bucket, qm.Path)
+	// Handle regular parquet queries (read entire file, or concatenate multiple files)
+	frames, err := parquet.ReadParquetFilesFromS3(ctx, s3Client, d.settings.Bucket, keys)
 	if err != nil {
 		log.DefaultLogger.Error("Failed to read parquet file", "refID", query.RefID, "error", err)
 		return backend.ErrDataResponse(backend.StatusUnknown, "Failed to read parquet file, see Grafana server log for details")
@@ -183,8 +192,78 @@ func (d *Datasource) query(ctx context.Context, query backend.DataQuery, s3Clien
 	return response
 }
 
+// maxPatternDays caps how many daily keys a pathPattern query can expand to,
+// so an accidentally huge dashboard time range (e.g. "Last 5 years") can't
+// trigger an unbounded S3 fan-out.
+const maxPatternDays = 370
+
+// resolveKeys determines the list of S3 object keys a query should read.
+// Priority: qm.PathPattern (expanded once per day across the query's time
+// range) > qm.Paths (explicit multi-file selection) > qm.Path (split on
+// commas so a single "path" field can also carry multiple files, e.g.
+// "a.parquet, b.parquet"). Empty entries are dropped.
+func resolveKeys(qm models.QueryModel, tr backend.TimeRange) ([]string, error) {
+	if qm.PathPattern != "" {
+		return expandDatePattern(qm.PathPattern, qm.DateFormat, tr)
+	}
+
+	var raw []string
+	if len(qm.Paths) > 0 {
+		raw = qm.Paths
+	} else if qm.Path != "" {
+		raw = strings.Split(qm.Path, ",")
+	}
+
+	keys := make([]string, 0, len(raw))
+	for _, p := range raw {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			keys = append(keys, p)
+		}
+	}
+	return keys, nil
+}
+
+// expandDatePattern expands a path pattern containing a "{date}" placeholder
+// into one S3 key per day covered by the dashboard's time range (inclusive),
+// so a top-of-dashboard time-picker can automatically select daily-partitioned
+// Parquet files (e.g. "metrics-curated/dt={date}/data.parquet") without the
+// user manually choosing files or relying on unsupported S3 globbing.
+// dateFormat uses Go's reference-time layout and must match how dates are
+// encoded in the S3 key layout; it defaults to "2006-01-02" (YYYY-MM-DD).
+func expandDatePattern(pattern, dateFormat string, tr backend.TimeRange) ([]string, error) {
+	if !strings.Contains(pattern, "{date}") {
+		return nil, fmt.Errorf("pathPattern must contain a %q placeholder", "{date}")
+	}
+
+	layout := dateFormat
+	if layout == "" {
+		layout = "2006-01-02"
+	}
+
+	from := tr.From.UTC()
+	to := tr.To.UTC()
+	if to.Before(from) {
+		return nil, fmt.Errorf("invalid time range: to is before from")
+	}
+
+	start := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, time.UTC)
+	end := time.Date(to.Year(), to.Month(), to.Day(), 0, 0, 0, 0, time.UTC)
+
+	days := int(end.Sub(start).Hours()/24) + 1
+	if days > maxPatternDays {
+		return nil, fmt.Errorf("time range spans %d days, which exceeds the %d day limit for pathPattern queries", days, maxPatternDays)
+	}
+
+	keys := make([]string, 0, days)
+	for d := start; !d.After(end); d = d.AddDate(0, 0, 1) {
+		keys = append(keys, strings.ReplaceAll(pattern, "{date}", d.Format(layout)))
+	}
+	return keys, nil
+}
+
 // handleVariableQuery handles template variable queries
-func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Client, qm models.QueryModel) backend.DataResponse {
+func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Client, qm models.QueryModel, tr backend.TimeRange) backend.DataResponse {
 	var response backend.DataResponse
 
 	// Determine the actual variable query type
@@ -197,11 +276,15 @@ func (d *Datasource) handleVariableQuery(ctx context.Context, s3Client *s3.Clien
 		if qm.SQLQuery == "" {
 			return backend.ErrDataResponse(backend.StatusBadRequest, "SQL query is required for sql variable type")
 		}
-		if qm.Path == "" {
+		keys, err := resolveKeys(qm, tr)
+		if err != nil {
+			return backend.ErrDataResponse(backend.StatusBadRequest, err.Error())
+		}
+		if len(keys) == 0 {
 			return backend.ErrDataResponse(backend.StatusBadRequest, "Path is required for sql variable type")
 		}
 		executor := sqlexec.NewExecutor(s3Client, d.settings.Bucket)
-		frames, err := executor.ExecuteSQL(ctx, qm.Path, qm.SQLQuery)
+		frames, err := executor.ExecuteSQL(ctx, keys, qm.SQLQuery)
 		if err != nil {
 			log.DefaultLogger.Error("SQL variable query failed", "error", err)
 			return backend.ErrDataResponse(backend.StatusUnknown, "SQL query failed, see Grafana server log for details")

@@ -1,0 +1,601 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Demonstrates the \"pathPattern\" date-range feature: events are written one file per day (events/dt=YYYY-MM-DD/events.parquet). Every panel's target sets pathPattern=\"events/dt={date}/events.parquet\" instead of a fixed path, so changing the top-right time-picker (e.g. \"Last 7 days\" vs \"Last 14 days\") automatically expands the query to the matching set of daily files - no manual file selection required. Panels additionally filter on the event_time TIMESTAMP column with WHERE event_time >= $__from AND event_time <= $__to, so results are precise down to the exact moment selected in the time-picker, not just whole days.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT COUNT(*) AS total_events FROM parquet WHERE event_time >= $__from AND event_time <= $__to",
+          "refId": "A"
+        }
+      ],
+      "title": "Total Events (in selected time range)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT COUNT(DISTINCT user_id) AS unique_users FROM parquet WHERE event_time >= $__from AND event_time <= $__to",
+          "refId": "A"
+        }
+      ],
+      "title": "Unique Users",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT ROUND(AVG(duration_ms), 0) AS avg_duration_ms FROM parquet WHERE event_time >= $__from AND event_time <= $__to",
+          "refId": "A"
+        }
+      ],
+      "title": "Average Event Duration",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT COUNT(DISTINCT dt) AS days_included FROM parquet",
+          "refId": "A"
+        }
+      ],
+      "title": "Daily Files Included",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 5,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "orientation": "auto",
+        "showValue": "always",
+        "stacking": "none",
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT dt, COUNT(*) AS events FROM parquet GROUP BY dt ORDER BY dt",
+          "refId": "A"
+        }
+      ],
+      "title": "Events per Day (one file per bar - resize the time picker to add/remove days)",
+      "type": "barchart"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "points",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "unit": "ms",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT event_time, duration_ms FROM parquet WHERE event_time >= $__from AND event_time <= $__to ORDER BY event_time",
+          "refId": "A"
+        }
+      ],
+      "title": "Events Timeline (event_time, exact-precision scatter)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "id": 6,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT event, COUNT(*) AS count FROM parquet WHERE event_time >= $__from AND event_time <= $__to GROUP BY event ORDER BY count DESC",
+          "refId": "A"
+        }
+      ],
+      "title": "Events by Type",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "tobiasworkstech-parquets3-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "id": 7,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": ["sum"],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.6.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "tobiasworkstech-parquets3-datasource",
+            "uid": "${datasource}"
+          },
+          "pathPattern": "events/dt={date}/events.parquet",
+          "sqlQuery": "SELECT * FROM parquet WHERE event_time >= $__from AND event_time <= $__to ORDER BY event_time DESC LIMIT 50",
+          "refId": "A"
+        }
+      ],
+      "title": "Recent Events (Within Selected Time Range)",
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["parquet", "s3", "multi-file", "date-partitioned", "time-range"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "tobiasworkstech-parquets3-datasource",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Daily Events by Time Range (Date-Partitioned Files)",
+  "uid": "daily-events-time-range",
+  "version": 1,
+  "weekStart": ""
+}

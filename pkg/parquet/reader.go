@@ -116,6 +116,50 @@ func ReadParquetFromS3(ctx context.Context, s3Client *s3.Client, bucket, key str
 	return []*data.Frame{frame}, nil
 }
 
+// ReadParquetFilesFromS3 reads and concatenates multiple Parquet files from S3
+// into a single data.Frame, allowing a query to search across several files at
+// once. All files must share an identical schema (same column names, order,
+// and types); a mismatch produces an error identifying the offending file.
+func ReadParquetFilesFromS3(ctx context.Context, s3Client *s3.Client, bucket string, keys []string) ([]*data.Frame, error) {
+	if len(keys) == 0 {
+		return nil, fmt.Errorf("no parquet files specified")
+	}
+
+	frames, err := ReadParquetFromS3(ctx, s3Client, bucket, keys[0])
+	if err != nil {
+		return nil, err
+	}
+	if len(frames) == 0 {
+		return nil, fmt.Errorf("parquet file %q produced no data", keys[0])
+	}
+	merged := frames[0]
+
+	for _, key := range keys[1:] {
+		nextFrames, err := ReadParquetFromS3(ctx, s3Client, bucket, key)
+		if err != nil {
+			return nil, err
+		}
+		if len(nextFrames) == 0 {
+			continue
+		}
+		next := nextFrames[0]
+
+		if len(next.Fields) != len(merged.Fields) {
+			return nil, fmt.Errorf("schema mismatch: %q has %d column(s), expected %d (from %q)", key, len(next.Fields), len(merged.Fields), keys[0])
+		}
+		for i, field := range next.Fields {
+			baseField := merged.Fields[i]
+			if field.Name != baseField.Name || field.Type() != baseField.Type() {
+				return nil, fmt.Errorf("schema mismatch: column %d in %q is %q (%s), expected %q (%s) from %q", i, key, field.Name, field.Type(), baseField.Name, baseField.Type(), keys[0])
+			}
+			baseField.AppendAll(field)
+		}
+	}
+
+	merged.Name = fmt.Sprintf("%d files", len(keys))
+	return []*data.Frame{merged}, nil
+}
+
 // ReadParquetSchemaFromS3 reads only the Parquet footer to extract the schema
 // and returns an empty data frame whose fields match the file's columns. This
 // avoids loading row data from S3 for schema-discovery requests (e.g. the
