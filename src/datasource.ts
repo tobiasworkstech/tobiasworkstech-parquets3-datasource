@@ -17,12 +17,19 @@ export class DataSource extends DataSourceWithBackend<MyQuery, MyDataSourceOptio
     return {
       ...query,
       path: getTemplateSrv().replace(query.path, scopedVars),
+      paths: query.paths?.map((p) => getTemplateSrv().replace(p, scopedVars)),
+      pathPattern: query.pathPattern ? getTemplateSrv().replace(query.pathPattern, scopedVars) : query.pathPattern,
+      // Interpolates dashboard variables as well as Grafana's built-in time-range
+      // globals ($__from, $__to, ${__from:date:...}, etc.), so a WHERE clause like
+      // "event_time >= $__from AND event_time <= $__to" is expanded to concrete
+      // values before being sent to the backend's SQL executor.
+      sqlQuery: query.sqlQuery ? getTemplateSrv().replace(query.sqlQuery, scopedVars) : query.sqlQuery,
     };
   }
 
   filterQuery(query: MyQuery): boolean {
-    // if no path has been provided, prevent the query from being executed
-    return !!query.path;
+    // if no path (or paths, or a date-range path pattern) has been provided, prevent the query from being executed
+    return !!query.path || !!query.paths?.length || !!query.pathPattern;
   }
 
   /**

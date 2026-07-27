@@ -31,6 +31,12 @@ The Parquet-S3-Datasource plugin enables you to connect Grafana to your data lak
 ### Server Metrics Time-Series Dashboard
 ![Metrics Dashboard](src/img/dashboard-metrics.png)
 
+### Multi-File Sales Dashboard
+![Multi-File Sales Dashboard](src/img/dashboard-multi-file-sales.png)
+
+### Daily Events by Time Range Dashboard
+![Daily Events by Time Range Dashboard](src/img/dashboard-daily-events.png)
+
 ### Template Variables
 ![Template Variables](src/img/template-variables.png)
 
@@ -195,11 +201,20 @@ Secret Key: ***
 
 ## Sample Dashboards
 
-The plugin includes sample dashboards demonstrating various use cases:
+The plugin includes sample dashboards demonstrating various use cases (see `provisioning/dashboards/`):
 
 - **Iris Dataset**: Classic ML dataset with flower measurements
 - **Titanic Dataset**: Survival analysis with aggregations
 - **Time Series Metrics**: Server metrics visualization
+- **Multi-File Sales** (`multi-file-sales.json`): Demonstrates searching several Parquet files at once. Every panel targets `sales_north.parquet`, `sales_south.parquet`, `sales_east.parquet`, and `sales_west.parquet` together (via `paths`), showing:
+  - Stat panels: Total Revenue, Total Orders, Regions Covered, Average Order Value
+  - A combined table of all four regions' orders
+  - Grouped tables: Revenue by Region, Revenue by Category, Top Products by Revenue
+- **Daily Events by Time Range** (`daily-events-time-range.json`): Demonstrates the `pathPattern` date-range feature and event_time-based filtering, against 14 daily files (`events/dt=YYYY-MM-DD/events.parquet`). Every target sets `pathPattern="events/dt={date}/events.parquet"` — no fixed file path — so Grafana's top-right time-picker automatically expands the query to the matching set of daily files, and `WHERE event_time >= $__from AND event_time <= $__to` narrows results to the exact selected moment (not just whole days). Panels:
+  - Stat panels: Total Events, Unique Users, Average Event Duration, Daily Files Included
+  - **Events per Day** (barchart): row counts grouped by the `dt` partition column
+  - **Events Timeline** (timeseries): raw `event_time`/`duration_ms` scatter — a true time-typed x-axis, distinct from the day-bucketed bar chart
+  - Tables: Events by Type, Recent Events (both time-range filtered)
 
 ## Troubleshooting
 

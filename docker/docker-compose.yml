@@ -123,6 +123,62 @@ services:
         })
         upload(test_df, 'test.parquet')
 
+        # --- 6. Regional sales (split across 4 identically-shaped files) ---
+        # Demonstrates multi-file search: each file covers one region but all
+        # share the same schema, so they can be selected together in the query
+        # editor and combined into a single result set.
+        products = [
+            ('Widget A', 'Hardware', 12.50), ('Widget B', 'Hardware', 24.00),
+            ('Gadget X', 'Electronics', 89.99), ('Gadget Y', 'Electronics', 149.99),
+            ('Service Plan', 'Services', 39.00), ('Support Contract', 'Services', 199.00),
+            ('Accessory Kit', 'Hardware', 15.75), ('Premium Cable', 'Electronics', 9.99),
+        ]
+        sales_start = datetime.now() - timedelta(days=90)
+        order_id = 1
+        for region in ['north', 'south', 'east', 'west']:
+            n_orders = np.random.randint(150, 250)
+            rows = []
+            for _ in range(n_orders):
+                product, category, unit_price = products[np.random.randint(len(products))]
+                quantity = np.random.randint(1, 10)
+                order_date = sales_start + timedelta(
+                    days=float(np.random.uniform(0, 90)),
+                    hours=float(np.random.uniform(0, 24)),
+                )
+                rows.append([
+                    order_id, order_date, region, product, category,
+                    quantity, unit_price, round(quantity * unit_price, 2),
+                    np.random.randint(1000, 2000),
+                ])
+                order_id += 1
+            region_df = pd.DataFrame(rows, columns=[
+                'order_id', 'order_date', 'region', 'product', 'category',
+                'quantity', 'unit_price', 'revenue', 'customer_id',
+            ]).sort_values('order_date').reset_index(drop=True)
+            upload(region_df, f'sales_{region}.parquet')
+
+        # --- 7. Daily-partitioned events (one file per day) ---
+        # Demonstrates the "pathPattern" date-range feature: each day gets its
+        # own file at events/dt=YYYY-MM-DD/events.parquet (matching a typical
+        # daily-export data lake layout). Selecting Grafana's time-picker range
+        # (e.g. "Last 7 days") causes the plugin to expand a single query
+        # target with pathPattern="events/dt={date}/events.parquet" into the
+        # matching set of daily files automatically, with no manual selection.
+        event_types = ['page_view', 'click', 'signup', 'purchase', 'error']
+        for day_offset in range(14):
+            day = (datetime.now() - timedelta(days=day_offset)).date()
+            n_events = np.random.randint(50, 150)
+            day_start = datetime(day.year, day.month, day.day)
+            events_df = pd.DataFrame({
+                'event_time': [day_start + timedelta(seconds=int(np.random.uniform(0, 86400))) for _ in range(n_events)],
+                'dt': day.isoformat(),
+                'event': np.random.choice(event_types, n_events, p=[0.45, 0.3, 0.1, 0.1, 0.05]),
+                'user_id': np.random.randint(1000, 1200, n_events),
+                'session_id': np.random.randint(100000, 999999, n_events),
+                'duration_ms': np.random.exponential(400, n_events).round(0).astype(int),
+            }).sort_values('event_time').reset_index(drop=True)
+            upload(events_df, f'events/dt={day.isoformat()}/events.parquet')
+
         print("\nAll datasets uploaded successfully!")
         PYEOF
     networks:

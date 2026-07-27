@@ -20,6 +20,18 @@ export interface OrderByItem {
 
 export interface MyQuery extends DataQuery {
   path?: string;
+  paths?: string[];
+  /**
+   * A path template containing a "{date}" placeholder (e.g.
+   * "metrics-curated/dt={date}/data.parquet") that is expanded, server-side,
+   * into one file per day covered by the dashboard's time range. Lets a
+   * top-of-dashboard time-picker drive which daily-partitioned Parquet files
+   * are queried, without manually selecting files. Takes priority over
+   * `path`/`paths` when set.
+   */
+  pathPattern?: string;
+  /** Go reference-time layout used to format "{date}" in `pathPattern`. Defaults to "2006-01-02" (YYYY-MM-DD). */
+  dateFormat?: string;
   sqlQuery?: string;
   format?: 'table' | 'time_series';
   editorMode?: 'builder' | 'code';
