@@ -8,6 +8,7 @@ import (
 
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
+	"github.com/apache/arrow-go/v18/arrow/memory"
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/apache/arrow-go/v18/parquet/pqarrow"
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -87,7 +88,7 @@ func ReadParquetFromS3(ctx context.Context, s3Client *s3.Client, bucket, key str
 	}
 	defer pf.Close()
 
-	arrowReader, err := pqarrow.NewFileReader(pf, pqarrow.ArrowReadProperties{}, nil)
+	arrowReader, err := pqarrow.NewFileReader(pf, pqarrow.ArrowReadProperties{}, memory.DefaultAllocator)
 	if err != nil {
 		return nil, fmt.Errorf("new arrow reader: %w", err)
 	}
@@ -147,7 +148,7 @@ func ReadParquetSchemaFromS3(ctx context.Context, s3Client *s3.Client, bucket, k
 	}
 	defer pf.Close()
 
-	arrowReader, err := pqarrow.NewFileReader(pf, pqarrow.ArrowReadProperties{}, nil)
+	arrowReader, err := pqarrow.NewFileReader(pf, pqarrow.ArrowReadProperties{}, memory.DefaultAllocator)
 	if err != nil {
 		return nil, fmt.Errorf("new arrow reader: %w", err)
 	}
